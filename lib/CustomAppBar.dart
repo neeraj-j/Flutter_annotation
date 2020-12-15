@@ -9,6 +9,7 @@ import 'package:vector_math/vector_math_64.dart' show Vector3;
 import 'dart:ui' as ui;
 import 'Painter.dart';
 import 'overlay.dart';
+import 'Globals.dart' as Globals;
 
 class CustomAppBar extends StatefulWidget {
   @override
@@ -23,37 +24,38 @@ class _CustomAppBarState extends State<CustomAppBar> {
   double _scale = 1.0;
   AlignmentGeometry _dxy = Alignment(0,0);
   String _currImgUrl = "";
-  double currImgWidth = 100;
-  double currImgHeight = 100;
-  Image _currentImage = Image.asset('Images/logo.jpg');
-  //ImgContainer _currentImage = ImgContainer(imgUrl:"Images/logo.jpg", winWidth:500, winHeight:500, scale:1.0, align:Alignment.center); 
+  double currImgWidth = 500;
+  double currImgHeight = 500;
+  final GlobalKey _imgKey = GlobalKey();
+
+  //Image _currentImage = Image.asset('Images/logo.jpg');
+  ImgContainer _currentImage = ImgContainer(imgUrl:"Images/logo.jpg", winWidth:500, winHeight:500, scale:1.0, align:Alignment.center); 
 
 
-    //List<String> labelItems = [
     var labelItems = {
 	   "nose":0,
-       "left_eye":0,
-       "right_eye":0,
-       "left_ear":0,
-       "right_ear":0,
-       "left_shoulder":0,
-       "right_shoulder":0,
-       "left_elbow":0,
-       "right_elbow":0,
-       "left_wrist":0,
-       "right_wrist":0,
-       "left_hip":0,
-       "right_hip":0,
-       "left_knee":0,
-       "right_knee":0,
-       "left_ankle":0,
+       "left_eye":1,
+       "right_eye":2,
+       "left_ear":3,
+       "right_ear":4,
+       "left_shoulder":5,
+       "right_shoulder":6,
+       "left_elbow":7,
+       "right_elbow":8,
+       "left_wrist":9,
+       "right_wrist":10,
+       "left_hip":11,
+       "right_hip":12,
+       "left_knee":13,
+       "right_knee":14,
+       "left_ankle":15,
        "right_ankle":16,
   };
 
   void renderImg() {
 	setState(() {
-		_currentImage = Image.network(_currImgUrl, scale:_scale, fit:BoxFit.none, alignment: _dxy);
-	//	_currentImage = ImgContainer(imgUrl:_currImgUrl, winWidth:currImgWidth, winHeight:currImgHeight, scale:_scale, align:_dxy); 
+	//	_currentImage = Image.network(_currImgUrl, scale:_scale, fit:BoxFit.none, alignment: _dxy);
+		_currentImage = new ImgContainer(key:_imgKey, imgUrl:_currImgUrl, winWidth:currImgWidth, winHeight:currImgHeight, scale:_scale, align:_dxy); 
 	});
   }
   //Using this as I need image size
@@ -349,7 +351,9 @@ class _CustomAppBarState extends State<CustomAppBar> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Center image
-                    SizedBox(
+					_currentImage,
+				  
+                    /*SizedBox(
                       width: MediaQuery.of(context).size.width * 0.8,
                       height: MediaQuery.of(context).size.height * 0.70,
 						  child:
@@ -368,17 +372,8 @@ class _CustomAppBarState extends State<CustomAppBar> {
 									 renderImg(); 
 								},
 								child: _currentImage,
-								/*
-								child: CustomPaint( 
-										foregroundPainter: ShapePainter(),
-										child: _currentImage,
-										//size: Size(currImgWidth,currImgHeight), 
-										size: Size(100,100), 
-										willChange: true,
-										),
-								*/
 							),
-					),
+					), */
                     // Display all selected images
                     Scrollbar(
                       controller: _scrollcontroller,
@@ -515,9 +510,9 @@ class _CustomAppBarState extends State<CustomAppBar> {
 									children: labelItems.keys
 									 .map((data) => ListTile(
 										title: Text(data),
-										onTap: ()=>{
-										  _showOverlayIcon(context),
-										  print(data)}
+										onTap: (){
+										  _showOverlayIcon(context, labelItems[data]);
+										  }
 										)).toList(),
 									),
 
@@ -603,53 +598,24 @@ class _CustomAppBarState extends State<CustomAppBar> {
     );
   }
 
-  void refresh(details){
-	 setState(() {
-		_dragAlignment += Alignment(
-				details.delta.dx / (500 / 2),
-				details.delta.dy / (500 / 2),
-				);
-		});
-  }
 
-  OverlayEntry _overlayItem ;
-  List<OverlayEntry> _overlayItemList = new List<OverlayEntry>(17);
   int _overlayIdx = -1;
-  Alignment _dragAlignment = Alignment.center;
+  List<OverlayEntry> _overlayItemList = new List<OverlayEntry>(17);
   // Implements overlays
-  void _showOverlayIcon(BuildContext context) async {
+  void _showOverlayIcon(BuildContext context, int labelIdx) async {
+	if (_overlayItemList[labelIdx] != null){return;}
 	OverlayState overlayState = Overlay.of(context);
+    OverlayEntry _overlayItem ;
 	// Generate the overlay entry
 	_overlayItem = OverlayEntry(builder: (BuildContext context) {
-		return OverlayKP(pContext:context);
-	  /*
-	  return GestureDetector(
-		behavior: HitTestBehavior.deferToChild,
-		onTap: () {
-		  _removeOverlayEntry();
-		},
-		onPanUpdate: (details) {
-			refresh(details);
-	    },
-		child: Align(
-					alignment: _dragAlignment,
-					child: Icon(Icons.circle, color: Colors.red),
-				),
-	  ); */
+		return OverlayKP(pContext:context, kpIdx: labelIdx, overlayList:_overlayItemList);
 	});
 	// Starting from -1
-	_overlayIdx++;
-	_overlayItemList[_overlayIdx] = _overlayItem;	
+	_overlayItemList[labelIdx] = _overlayItem;	
 	// Insert the overlayEntry on the screen
 	overlayState.insert(
-	  _overlayItemList[_overlayIdx],
+	  _overlayItemList[labelIdx],
 	);
-  }
-
-  void _removeOverlayEntry() {
-    _overlayItemList[_overlayIdx]?.remove();
-	_overlayIdx--;
-    //_overlayEntry = null;
   }
 
   BoxDecoration myBoxDecoration() {
@@ -688,38 +654,4 @@ hexStringToHexInt(String hex) {
     return imageInfo.image;
   }
   */
-class OverlayKP extends StatefulWidget {
-  OverlayKP({
-  Key key,
-  @required this.pContext,
-  }):super(key:key);
-
-  final BuildContext pContext;
-
-  @override
-  _OverlayKPState createState() => _OverlayKPState();
-}
-
-class _OverlayKPState extends State<OverlayKP> {
-  Alignment _dragAlignment = Alignment.center;
-
-  @override
-  Widget build(BuildContext pContext) {
-	  return GestureDetector(
-		behavior: HitTestBehavior.deferToChild,
-		onPanUpdate: (details) {
-			 setState(() {
-				_dragAlignment += Alignment(
-						details.delta.dx / (500 / 2),
-						details.delta.dy / (500 / 2),
-						);
-				});
-	    },
-		child: Align(
-					alignment: _dragAlignment,
-					child: Icon(Icons.circle, color: Colors.red, size:16),
-				),
-	  );
-  }
-}
 

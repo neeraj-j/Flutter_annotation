@@ -1,6 +1,9 @@
 //This file implemets overlay widget
 import 'package:flutter/material.dart';
+import 'Globals.dart';
 // Implements overlay class for dots
+
+final GlobalKey _imgKey = GlobalKey();
 
 class ImgContainer extends StatefulWidget {
   ImgContainer({
@@ -23,26 +26,23 @@ class ImgContainer extends StatefulWidget {
 }
 
 class _ImgContainerState extends State<ImgContainer> {
-  Image getImg() {
-    Image _currentImage = Image.network(widget.imgUrl,
-        scale: widget.scale, fit: BoxFit.none, alignment: widget.align);
-    return _currentImage;
-  }
+  BuildContext myContext;
 
   @override
   Widget build(BuildContext context) {
+	myContext = context;
     return SizedBox(
+	  key: _imgKey,
       width: widget.winWidth, 
       height: widget.winHeight, 
-      child: Image.network(widget.imgUrl,
-        scale: widget.scale, fit: BoxFit.none, alignment: widget.align),
-	  /*
+      //child: Image.network(widget.imgUrl,
+      //  scale: widget.scale, fit: BoxFit.none, alignment: widget.align),
+	  
 		 // No gesture detector for image
       child: GestureDetector(
         // Show overlay icon
         onLongPress: () {
-          //_showOverlayIcon(context, width, height);
-          //_showOverlayIcon(context);
+          //showOverlayIcon();
         },
         // Pan the image
         onPanUpdate: (details) {
@@ -52,6 +52,8 @@ class _ImgContainerState extends State<ImgContainer> {
           // _dxy = _currentImage.alignment.add(Alignment(x,y));
           // renderImg();
         },
+		child: Image.network(widget.imgUrl,
+				  scale: widget.scale, fit: BoxFit.none, alignment: widget.align),
         /*
 								child: CustomPaint( 
 										foregroundPainter: ShapePainter(),
@@ -61,51 +63,24 @@ class _ImgContainerState extends State<ImgContainer> {
 										willChange: true,
 										),
 								*/
-      ), */
+      ), 
     );
   }
 
-  void showOverlayIcon(){
-	_showOverlayIcon(context, widget.winWidth, widget.winHeight);
-  }
 
-  OverlayEntry _overlayItem;
-  final List<OverlayEntry> _overlayItemList = new List<OverlayEntry>(17);
-  int _overlayIdx = -1;
-  // Implements overlays
-  void _showOverlayIcon(BuildContext context, double width, double height) async {
-    OverlayState overlayState = Overlay.of(context);
-    // Generate the overlay entry
-    _overlayItem = OverlayEntry(builder: (BuildContext context) {
-      return OverlayKP(pContext: context, width:width, height: height);
-    });
-    // Starting from -1
-    _overlayIdx++;
-    _overlayItemList[_overlayIdx] = _overlayItem;
-    // Insert the overlayEntry on the screen
-    overlayState.insert(
-      _overlayItemList[_overlayIdx],
-    );
-  }
-
-  void _removeOverlayEntry() {
-    _overlayItemList[_overlayIdx]?.remove();
-    _overlayIdx--;
-    //_overlayEntry = null;
-  }
 }
 
 class OverlayKP extends StatefulWidget {
   OverlayKP({
     Key key,
     @required this.pContext,
-    @required this.width,
-    @required this.height,
+    @required this.kpIdx,
+    @required this.overlayList,
   }) : super(key: key);
 
   final BuildContext pContext;
-  final double width;
-  final double height;
+  final int kpIdx;
+  final List<OverlayEntry> overlayList; 
 
 
   @override
@@ -113,24 +88,82 @@ class OverlayKP extends StatefulWidget {
 }
 
 class _OverlayKPState extends State<OverlayKP> {
-  Alignment _dragAlignment = Alignment.center;
+  Alignment _dragAlignment = Alignment.topRight;
+
+  Rect _getPosition() {
+	RenderBox box = _imgKey.currentContext.findRenderObject() as RenderBox;
+	Offset topLeft = box.size.topLeft(box.localToGlobal(Offset.zero));
+	Offset bottomRight =
+	   box.size.bottomRight(box.localToGlobal(Offset.zero));
+	return Rect.fromLTRB(
+	   topLeft.dx, topLeft.dy, bottomRight.dx, bottomRight.dy);
+  }
+
+  void _removeOverlayEntry() {
+    widget.overlayList[widget.kpIdx].remove();
+    widget.overlayList[widget.kpIdx] = null;
+    //_overlayEntry = null;
+  }
 
   @override
   Widget build(BuildContext pContext) {
-    return GestureDetector(
-      behavior: HitTestBehavior.deferToChild,
-      onPanUpdate: (details) {
-        setState(() {
-          _dragAlignment += Alignment(
-            details.delta.dx / (widget.width / 2),
-            details.delta.dy / (widget.height / 2),
-          );
-        });
-      },
-      child: Align(
-        alignment: _dragAlignment,
-        child: Icon(Icons.circle, color: Colors.red),
-      ),
+    Rect overlayPos = _getPosition();
+	Color clr = (widget.kpIdx %2 == 0)? Colors.green[400]: Colors.red[400];
+    // Get the coordinates of the item
+    Rect widgetPosition = _getPosition().translate(
+        -overlayPos.left, 
+        -overlayPos.top,
     );
+    return CustomSingleChildLayout(
+		delegate: _OverlayableContainerLayout(overlayPos),
+		child: Container(
+			child: GestureDetector(
+				onDoubleTap: (){
+					_removeOverlayEntry();
+				},
+			  //behavior: HitTestBehavior.deferToChild,
+			  onPanUpdate: (details) {
+				setState(() {
+				  double dx = details.delta.dx / (overlayPos.width / 2);
+				  double dy = details.delta.dy / (overlayPos.height / 2);
+				  _dragAlignment += Alignment(dx, dy);
+				  double x = _dragAlignment.x;
+				  double y = _dragAlignment.y;
+				  // clip the avalues to -1 to 1
+				  if (x > 1.0){_dragAlignment = Alignment(1.0,y) ;}
+				  else if (x < -1.0){_dragAlignment = Alignment(-1.0,y);}
+				  if (y > 1.0){_dragAlignment = Alignment(x,1.0) ;}
+				  else if (y < -1.0){_dragAlignment = Alignment(x,-1.0);}
+
+				});
+			  },
+			  child: Align(
+				alignment: _dragAlignment,
+				child: Icon(Icons.circle, color: clr),
+			  ),
+		)//Gesture
+	),
+	); // Container
+  }
+}
+
+class _OverlayableContainerLayout extends SingleChildLayoutDelegate {
+  _OverlayableContainerLayout(this.position);
+
+  final Rect position;
+
+  @override
+  BoxConstraints getConstraintsForChild(BoxConstraints constraints) {
+    return BoxConstraints.loose(Size(position.width, position.height));
+  }
+
+  @override
+  Offset getPositionForChild(Size size, Size childSize) {
+    return Offset(position.left, position.top);
+  }
+
+  @override
+  bool shouldRelayout(_OverlayableContainerLayout oldDelegate) {
+    return position != oldDelegate.position;
   }
 }
