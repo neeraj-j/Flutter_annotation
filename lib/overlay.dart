@@ -1,9 +1,37 @@
 //This file implemets overlay widget
 import 'package:flutter/material.dart';
+import 'Common.dart';
 import 'Globals.dart';
 // Implements overlay class for dots
+// This key is used for image widget
 
-final GlobalKey _imgKey = GlobalKey();
+    var labelText = {
+	  0:"Nose",
+      1:"Left Eye",
+      2:"Right Eye",
+      3:"Left Ear",
+      4:"Right Ear",
+      5:"Left Shoulder",
+      6:"Right Shoulder",
+      7:"Left Elbow",
+      8:"Right Elbow",
+      9:"Left Wrist",
+      10:"Right Wrist",
+      11:"Left Hip",
+      12:"Right Hip",
+      13:"Left Knee",
+      14:"Right Knee",
+      15:"Left Ankle",
+      16:"Right Ankle",
+  };
+
+var boxText = {
+  0:"Top Left",
+  1: "Bottom Right",
+};
+
+
+// ------ Image  container Start -------------------//
 
 class ImgContainer extends StatefulWidget {
   ImgContainer({
@@ -32,7 +60,7 @@ class _ImgContainerState extends State<ImgContainer> {
   Widget build(BuildContext context) {
 	myContext = context;
     return SizedBox(
-	  key: _imgKey,
+	  key: imgKey,
       width: widget.winWidth, 
       height: widget.winHeight, 
       //child: Image.network(widget.imgUrl,
@@ -54,33 +82,24 @@ class _ImgContainerState extends State<ImgContainer> {
         },
 		child: Image.network(widget.imgUrl,
 				  scale: widget.scale, fit: BoxFit.none, alignment: widget.align),
-        /*
-								child: CustomPaint( 
-										foregroundPainter: ShapePainter(),
-										child: _currentImage,
-										//size: Size(currImgWidth,currImgHeight), 
-										size: Size(100,100), 
-										willChange: true,
-										),
-								*/
       ), 
     );
   }
-
-
 }
+// ------ Image  container End -------------------//
 
+// ------ Keypoint overlay container Start -------------------//
 class OverlayKP extends StatefulWidget {
   OverlayKP({
     Key key,
     @required this.pContext,
     @required this.kpIdx,
-    @required this.overlayList,
+	@required this.iconKey,
   }) : super(key: key);
 
   final BuildContext pContext;
   final int kpIdx;
-  final List<OverlayEntry> overlayList; 
+  final GlobalKey iconKey;
 
 
   @override
@@ -88,38 +107,19 @@ class OverlayKP extends StatefulWidget {
 }
 
 class _OverlayKPState extends State<OverlayKP> {
-  Alignment _dragAlignment = Alignment.topRight;
-
-  Rect _getPosition() {
-	RenderBox box = _imgKey.currentContext.findRenderObject() as RenderBox;
-	Offset topLeft = box.size.topLeft(box.localToGlobal(Offset.zero));
-	Offset bottomRight =
-	   box.size.bottomRight(box.localToGlobal(Offset.zero));
-	return Rect.fromLTRB(
-	   topLeft.dx, topLeft.dy, bottomRight.dx, bottomRight.dy);
-  }
-
-  void _removeOverlayEntry() {
-    widget.overlayList[widget.kpIdx].remove();
-    widget.overlayList[widget.kpIdx] = null;
-    //_overlayEntry = null;
-  }
+  Alignment _dragAlignment = Alignment.center;
 
   @override
   Widget build(BuildContext pContext) {
-    Rect overlayPos = _getPosition();
+    Rect overlayPos = getPosition(imgKey);
 	Color clr = (widget.kpIdx %2 == 0)? Colors.green[400]: Colors.red[400];
-    // Get the coordinates of the item
-    Rect widgetPosition = _getPosition().translate(
-        -overlayPos.left, 
-        -overlayPos.top,
-    );
+
     return CustomSingleChildLayout(
 		delegate: _OverlayableContainerLayout(overlayPos),
 		child: Container(
 			child: GestureDetector(
-				onDoubleTap: (){
-					_removeOverlayEntry();
+				onLongPress: (){
+					removeOverlayKpEntry(widget.kpIdx);
 				},
 			  //behavior: HitTestBehavior.deferToChild,
 			  onPanUpdate: (details) {
@@ -137,15 +137,90 @@ class _OverlayKPState extends State<OverlayKP> {
 
 				});
 			  },
-			  child: Align(
-				alignment: _dragAlignment,
-				child: Icon(Icons.circle, color: clr),
-			  ),
+			  child: CustomPaint( 
+					  foregroundPainter: DrawSkeleton(),
+					  willChange: true,
+					  child: Align(
+						alignment: _dragAlignment,
+						child: Tooltip(
+						   message: labelText[widget.kpIdx],
+						   child: Icon( Icons.circle, key:widget.iconKey,size:15, color: clr),
+						)
+					  ),
+					  ),
 		)//Gesture
 	),
 	); // Container
   }
 }
+// ------ Keypoint overlay container End -------------------//
+
+// ------ Box overlay container Start -------------------//
+class OverlayBox extends StatefulWidget {
+  OverlayBox({
+    Key key,
+    @required this.pContext,
+    @required this.ptIdx,
+	@required this.iconKey,
+  }) : super(key: key);
+
+  final BuildContext pContext;
+  final int ptIdx;
+  final GlobalKey iconKey;
+
+  @override
+  _OverlayBoxState createState() => _OverlayBoxState();
+}
+
+class _OverlayBoxState extends State<OverlayBox> {
+  Alignment _dragAlignment = Alignment.center;
+
+  @override
+  Widget build(BuildContext pContext) {
+    Rect overlayPos = getPosition(imgKey);
+	Color bright = Colors.cyanAccent; // On select
+	Color dull = Colors.cyanAccent[700]; // On de select
+
+    return CustomSingleChildLayout(
+		delegate: _OverlayableContainerLayout(overlayPos),
+		child: Container(
+			child: GestureDetector(
+				onDoubleTap: (){
+					//removeOverlayEntry(widget.ptIdx);
+				},
+			  //behavior: HitTestBehavior.deferToChild,
+			  onPanUpdate: (details) {
+				setState(() {
+				  double dx = details.delta.dx / (overlayPos.width / 2);
+				  double dy = details.delta.dy / (overlayPos.height / 2);
+				  _dragAlignment += Alignment(dx, dy);
+				  double x = _dragAlignment.x;
+				  double y = _dragAlignment.y;
+				  // clip the avalues to -1 to 1
+				  if (x > 1.0){_dragAlignment = Alignment(1.0,y) ;}
+				  else if (x < -1.0){_dragAlignment = Alignment(-1.0,y);}
+				  if (y > 1.0){_dragAlignment = Alignment(x,1.0) ;}
+				  else if (y < -1.0){_dragAlignment = Alignment(x,-1.0);}
+
+				});
+			  },
+			  child: CustomPaint( 
+					  foregroundPainter: DrawSkeleton(),
+					  willChange: true,
+					  child: Align(
+						alignment: _dragAlignment,
+						child: Tooltip(
+						   message: boxText[widget.ptIdx],
+						   child: Icon( Icons.circle, key:widget.iconKey,size:15, color: dull),
+						)
+					  ),
+					  ),
+		)//Gesture
+	),
+	); // Container
+  }
+}
+// ------ Box overlay container End -------------------//
 
 class _OverlayableContainerLayout extends SingleChildLayoutDelegate {
   _OverlayableContainerLayout(this.position);

@@ -3,7 +3,11 @@ import 'package:flutter/material.dart';
 
 
 
-class ShapePainter extends CustomPainter {
+class LinePainter extends CustomPainter {
+  //int size;
+    // Constructor
+   // ShapePainter({this.size});
+
   @override
   void paint(Canvas canvas, Size size) {
 	    var paint = Paint()
@@ -11,8 +15,8 @@ class ShapePainter extends CustomPainter {
       ..strokeWidth = 5
       ..strokeCap = StrokeCap.round;
 
-    Offset center = Offset(size.width / 2, size.height / 2);
-    canvas.drawCircle(center, 20, paint);
+    //Offset center = Offset(size.width / 2, size.height / 2);
+    //canvas.drawCircle(center, 20, paint);
   }
 
   @override

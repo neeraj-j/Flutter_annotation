@@ -9,7 +9,8 @@ import 'package:vector_math/vector_math_64.dart' show Vector3;
 import 'dart:ui' as ui;
 import 'Painter.dart';
 import 'overlay.dart';
-import 'Globals.dart' as Globals;
+import 'Common.dart';
+import 'Globals.dart';
 
 class CustomAppBar extends StatefulWidget {
   @override
@@ -26,7 +27,6 @@ class _CustomAppBarState extends State<CustomAppBar> {
   String _currImgUrl = "";
   double currImgWidth = 500;
   double currImgHeight = 500;
-  final GlobalKey _imgKey = GlobalKey();
 
   //Image _currentImage = Image.asset('Images/logo.jpg');
   ImgContainer _currentImage = ImgContainer(imgUrl:"Images/logo.jpg", winWidth:500, winHeight:500, scale:1.0, align:Alignment.center); 
@@ -55,7 +55,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
   void renderImg() {
 	setState(() {
 	//	_currentImage = Image.network(_currImgUrl, scale:_scale, fit:BoxFit.none, alignment: _dxy);
-		_currentImage = new ImgContainer(key:_imgKey, imgUrl:_currImgUrl, winWidth:currImgWidth, winHeight:currImgHeight, scale:_scale, align:_dxy); 
+		_currentImage = new ImgContainer(imgUrl:_currImgUrl, winWidth:currImgWidth, winHeight:currImgHeight, scale:_scale, align:_dxy); 
 	});
   }
   //Using this as I need image size
@@ -425,6 +425,8 @@ class _CustomAppBarState extends State<CustomAppBar> {
 																	currImgHeight = snapshot.data.height.toDouble();
 																	_currImgUrl = blobImage.url;
 																	renderImg();
+																	// Todo: save keypoints
+																	purgeOverlayEntry();
                                                               },
                                                               child: SizedBox(
                                                                 width: 150,
@@ -511,7 +513,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
 									 .map((data) => ListTile(
 										title: Text(data),
 										onTap: (){
-										  _showOverlayIcon(context, labelItems[data]);
+										  _showOverlayKeypoint(context, labelItems[data]);
 										  }
 										)).toList(),
 									),
@@ -598,23 +600,47 @@ class _CustomAppBarState extends State<CustomAppBar> {
     );
   }
 
-
-  int _overlayIdx = -1;
-  List<OverlayEntry> _overlayItemList = new List<OverlayEntry>(17);
-  // Implements overlays
-  void _showOverlayIcon(BuildContext context, int labelIdx) async {
-	if (_overlayItemList[labelIdx] != null){return;}
-	OverlayState overlayState = Overlay.of(context);
-    OverlayEntry _overlayItem ;
+/*
+  // Implements BoundingBox overlays
+  void _showOverlayBox(BuildContext context) async {
+	if (overlayBoxList[0] != null){return;}
+    OverlayEntry _overlayTopIcon ;
+    OverlayState overlayState = Overlay.of(context);
+	GlobalKey topKey = GlobalKey(); // Icon key to exrect top location from icon
+	GlobalKey btmKey = GlobalKey(); // Icon key to exrect bottom location from icon
 	// Generate the overlay entry
-	_overlayItem = OverlayEntry(builder: (BuildContext context) {
-		return OverlayKP(pContext:context, kpIdx: labelIdx, overlayList:_overlayItemList);
+	_overlayTopIcon = OverlayEntry(builder: (BuildContext context) {
+		return OverlayBox(pContext:context, ptIdx:0, iconKey: topKey);
 	});
-	// Starting from -1
-	_overlayItemList[labelIdx] = _overlayItem;	
+	// Overlay items ony 1 
+	overlayBoxList[0] = _overlayTopIcon;	
+	// add icon key to extract position of keypoint 
+    boxKeyList[0] = topKey; 
 	// Insert the overlayEntry on the screen
 	overlayState.insert(
-	  _overlayItemList[labelIdx],
+	  overlayBoxList[0],
+	);
+  }
+*/
+
+  // Implements Keypoint overlays
+  void _showOverlayKeypoint(BuildContext context, int kpIdx) async {
+	if (overlayKpList[kpIdx] != null){return;}
+	OverlayState overlayState = Overlay.of(context);
+    OverlayEntry _overlayItem ;
+	GlobalKey icKey = GlobalKey(); // Icon key to exrect KP location from icon
+	// Generate the overlay entry
+	_overlayItem = OverlayEntry(builder: (BuildContext context) {
+		return OverlayKP(pContext:context, kpIdx: kpIdx, iconKey: icKey);
+	});
+
+	// Overlay items
+	overlayKpList[kpIdx] = _overlayItem;	
+	// add icon key to extract position of keypoint 
+    kpKeyList[kpIdx] = icKey; 
+	// Insert the overlayEntry on the screen
+	overlayState.insert(
+	  overlayKpList[kpIdx],
 	);
   }
 
