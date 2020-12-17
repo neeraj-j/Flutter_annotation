@@ -22,14 +22,11 @@ class _CustomAppBarState extends State<CustomAppBar> {
   
   List<html.File> _files = [];
 
-  double _scale = 1.0;
   AlignmentGeometry _dxy = Alignment(0,0);
   String _currImgUrl = "";
-  double currImgWidth = 500;
-  double currImgHeight = 500;
 
   //Image _currentImage = Image.asset('Images/logo.jpg');
-  ImgContainer _currentImage = ImgContainer(imgUrl:"Images/logo.jpg", winWidth:500, winHeight:500, scale:1.0, align:Alignment.center); 
+  ImgContainer _currentImage = ImgContainer(imgUrl:"Images/logo.jpg", winWidth:null, winHeight:null, scale:2.2, align:Alignment.center); 
 
 
     var labelItems = {
@@ -55,7 +52,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
   void renderImg() {
 	setState(() {
 	//	_currentImage = Image.network(_currImgUrl, scale:_scale, fit:BoxFit.none, alignment: _dxy);
-		_currentImage = new ImgContainer(imgUrl:_currImgUrl, winWidth:currImgWidth, winHeight:currImgHeight, scale:_scale, align:_dxy); 
+		_currentImage = new ImgContainer(imgUrl:_currImgUrl, winWidth:null, winHeight:null, scale:imgScale, align:_dxy); 
 	});
   }
   //Using this as I need image size
@@ -87,7 +84,11 @@ class _CustomAppBarState extends State<CustomAppBar> {
 
   @override
   Widget build(BuildContext context) {
-
+	// this is the max space allocated for image windows
+    double maxWidth= MediaQuery.of(context).size.width * 0.8;
+    double maxHeight= MediaQuery.of(context).size.height * 0.70;
+	print(maxWidth);
+	print(maxHeight);
     final ScrollController _scrollcontroller = ScrollController();
     return Material(
       // Top container
@@ -232,7 +233,8 @@ class _CustomAppBarState extends State<CustomAppBar> {
             ]),
           ),
           // Second Row: 3 columns: Icons, image, labels/Filelist
-          Container(
+          //Container(
+          SizedBox(
             width: MediaQuery.of(context).size.width * 0.01,
             height: MediaQuery.of(context).size.height * 0.9,
             child: Row(
@@ -271,7 +273,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
                               IconButton(
                                 icon: Icon(Icons.crop_square_rounded,
                                     color: Colors.blue[400]),
-                                onPressed: () {},
+                                onPressed: () {_showOverlayBox(context);},
                                 alignment: Alignment.centerRight,
                                 hoverColor: Colors.amber[200],
                               ),
@@ -317,7 +319,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
                                         size: 30.0,
                                       ),
                                       onPressed: () {
-										_scale -= 0.1;
+										imgScale -= 0.1;
 										renderImg(); 
 
 									  },
@@ -331,7 +333,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
                                         size: 30.0,
                                       ),
                                       onPressed: () {
-										_scale += 0.1;
+										imgScale += 0.1;
 										renderImg(); 
 									  },
                                       alignment: Alignment.centerRight,
@@ -419,10 +421,13 @@ class _CustomAppBarState extends State<CustomAppBar> {
                                                                       new BlobImage(
                                                                           _files[index],
                                                                           name: _files[index].name);
-																	double winWidth= MediaQuery.of(context).size.width * 0.8;
-																	double winHeight= MediaQuery.of(context).size.height * 0.65;
-																	currImgWidth = snapshot.data.width.toDouble();
-																	currImgHeight = snapshot.data.height.toDouble();
+																	orgImgWidth = snapshot.data.width.toDouble();
+																	orgImgHeight = snapshot.data.height.toDouble();
+																	// scale is opposite greater means smaller
+																	double wScale = orgImgWidth/maxWidth;
+																	double hScale = orgImgHeight/maxHeight;
+																	imgScale = (wScale > hScale)?wScale : hScale;
+																	//Todo: calculate cuurr image size based on windows size
 																	_currImgUrl = blobImage.url;
 																	renderImg();
 																	// Todo: save keypoints
@@ -600,47 +605,70 @@ class _CustomAppBarState extends State<CustomAppBar> {
     );
   }
 
-/*
+
   // Implements BoundingBox overlays
   void _showOverlayBox(BuildContext context) async {
-	if (overlayBoxList[0] != null){return;}
     OverlayEntry _overlayTopIcon ;
+    OverlayEntry _overlayBotIcon ;
     OverlayState overlayState = Overlay.of(context);
 	GlobalKey topKey = GlobalKey(); // Icon key to exrect top location from icon
-	GlobalKey btmKey = GlobalKey(); // Icon key to exrect bottom location from icon
+	GlobalKey botKey = GlobalKey(); // Icon key to exrect bottom location from icon
+	var _overlayMap = { 
+	  "boxOvrls" : new List<OverlayEntry>(2), //list of box icons
+	  "boxKeys": new List<GlobalKey>(2), //icon and bottom point
+	  "kpKeys": new List<GlobalKey>(17), //Top and bottom point
+	  "kpOvrls" : new List<OverlayEntry>(17),
+	  // Todo: add segmentation also
+	};
+	// Index is 1 less than len
+	int _boxIdx = boxList.length;
 	// Generate the overlay entry
 	_overlayTopIcon = OverlayEntry(builder: (BuildContext context) {
-		return OverlayBox(pContext:context, ptIdx:0, iconKey: topKey);
+		return OverlayBox(pContext:context, boxIdx: _boxIdx, ptIdx:0, iconKey: topKey);
+	});
+	_overlayBotIcon = OverlayEntry(builder: (BuildContext context) {
+		return OverlayBox(pContext:context, boxIdx: _boxIdx, ptIdx:1, iconKey: botKey);
 	});
 	// Overlay items ony 1 
-	overlayBoxList[0] = _overlayTopIcon;	
+	_overlayMap["boxOvrls"][0] = _overlayTopIcon;	
+	_overlayMap["boxOvrls"][1] = _overlayBotIcon;	
+	_overlayMap["boxKeys"][0] = topKey;	
+	_overlayMap["boxKeys"][1] = botKey;	
+	boxList.add(_overlayMap);
+	// Todo: append currentBoxIdx to ptIdx
 	// add icon key to extract position of keypoint 
-    boxKeyList[0] = topKey; 
 	// Insert the overlayEntry on the screen
-	overlayState.insert(
-	  overlayBoxList[0],
+	overlayState.insertAll(
+	  [_overlayBotIcon,
+	  _overlayTopIcon,],
 	);
   }
-*/
+
 
   // Implements Keypoint overlays
   void _showOverlayKeypoint(BuildContext context, int kpIdx) async {
-	if (overlayKpList[kpIdx] != null){return;}
-	OverlayState overlayState = Overlay.of(context);
+	if (currBoxIdx == -1){
+	  print('Error: No box selected');
+	  return;
+	}
+	if (boxList[currBoxIdx]["kpOvrls"][kpIdx] != null){return;}
+	print(currBoxIdx);
     OverlayEntry _overlayItem ;
 	GlobalKey icKey = GlobalKey(); // Icon key to exrect KP location from icon
+	OverlayState overlayState = Overlay.of(context);
+	int _boxIdx = currBoxIdx;  // Do not pass cuurBoxIdx directly to overlayKP
 	// Generate the overlay entry
 	_overlayItem = OverlayEntry(builder: (BuildContext context) {
-		return OverlayKP(pContext:context, kpIdx: kpIdx, iconKey: icKey);
+		return OverlayKP(pContext:context, boxIdx:_boxIdx,kpIdx: kpIdx, iconKey: icKey);
 	});
 
 	// Overlay items
-	overlayKpList[kpIdx] = _overlayItem;	
+	boxList[currBoxIdx]["kpOvrls"][kpIdx] =  _overlayItem;	
 	// add icon key to extract position of keypoint 
-    kpKeyList[kpIdx] = icKey; 
+	boxList[currBoxIdx]["kpKeys"][kpIdx] =  icKey;	
 	// Insert the overlayEntry on the screen
 	overlayState.insert(
-	  overlayKpList[kpIdx],
+	  _overlayItem,
 	);
   }
 

@@ -4,14 +4,15 @@ import 'package:flutter/material.dart';
 
 final GlobalKey imgKey = GlobalKey();
 
-// two icons for every box
-List<OverlayEntry> overlayBoxIconList=new List<OverlayEntry>(2);
-// Every box has 2 icons
-List<GlobalKey> boxIconKeyList = new List<GlobalKey>(2); //Top and bottom point
-List<GlobalKey> kpKeyList = new List<GlobalKey>(17);
-List<OverlayEntry> overlayKpList = new List<OverlayEntry>(17);
-int currentBoxIdx = 0;
 
+Color brightCyan = Colors.cyanAccent; // On select
+Color dullCyan = Colors.cyanAccent[700]; // On de select
+Color white = Colors.white; // On de select
+
+// Image globals
+double imgScale = 1.0;
+double orgImgWidth;
+double orgImgHeight;
 
 // Skeleton
 List<List<int>> skeleton = [
@@ -35,8 +36,10 @@ List<List<int>> skeleton = [
   [4, 6],
   [5, 7]
 ];
+
+// annotation (kp and bbox ) globals
 /***
-  This is the map strcture
+  This is the local map strcture
 var overlayMap = { 
   "boxOverlayIcons" : new List<OverlayEntry>(2), //list of box icons
   "boxIconKeys": new List<GlobalKey>(2), //icon and bottom point
@@ -45,6 +48,7 @@ var overlayMap = {
   // Todo: add segmentation also
 };
 *****/
-
+int currBoxIdx = -1;
 List<Map> boxList = [];
+
 

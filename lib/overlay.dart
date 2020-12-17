@@ -93,11 +93,13 @@ class OverlayKP extends StatefulWidget {
   OverlayKP({
     Key key,
     @required this.pContext,
+    @required this.boxIdx,
     @required this.kpIdx,
 	@required this.iconKey,
   }) : super(key: key);
 
   final BuildContext pContext;
+  final int boxIdx;
   final int kpIdx;
   final GlobalKey iconKey;
 
@@ -118,8 +120,8 @@ class _OverlayKPState extends State<OverlayKP> {
 		delegate: _OverlayableContainerLayout(overlayPos),
 		child: Container(
 			child: GestureDetector(
-				onLongPress: (){
-					removeOverlayKpEntry(widget.kpIdx);
+				onDoubleTap: (){ // Long press not working
+					removeOverlayKpEntry(widget.boxIdx,widget.kpIdx);
 				},
 			  //behavior: HitTestBehavior.deferToChild,
 			  onPanUpdate: (details) {
@@ -138,7 +140,7 @@ class _OverlayKPState extends State<OverlayKP> {
 				});
 			  },
 			  child: CustomPaint( 
-					  foregroundPainter: DrawSkeleton(),
+					  foregroundPainter: DrawSkeleton(widget.boxIdx),
 					  willChange: true,
 					  child: Align(
 						alignment: _dragAlignment,
@@ -160,11 +162,13 @@ class OverlayBox extends StatefulWidget {
   OverlayBox({
     Key key,
     @required this.pContext,
+    @required this.boxIdx,
     @required this.ptIdx,
 	@required this.iconKey,
   }) : super(key: key);
 
   final BuildContext pContext;
+  final int boxIdx;
   final int ptIdx;
   final GlobalKey iconKey;
 
@@ -174,19 +178,35 @@ class OverlayBox extends StatefulWidget {
 
 class _OverlayBoxState extends State<OverlayBox> {
   Alignment _dragAlignment = Alignment.center;
+  Color clr = dullCyan;
 
   @override
   Widget build(BuildContext pContext) {
     Rect overlayPos = getPosition(imgKey);
-	Color bright = Colors.cyanAccent; // On select
-	Color dull = Colors.cyanAccent[700]; // On de select
 
     return CustomSingleChildLayout(
 		delegate: _OverlayableContainerLayout(overlayPos),
 		child: Container(
 			child: GestureDetector(
-				onDoubleTap: (){
-					//removeOverlayEntry(widget.ptIdx);
+				onSecondaryLongPress: (){
+				  // Delete 
+				  print("rigt mouse Long Press working");
+				},
+				onTap: (){
+				  // select and heighlight
+				  setState((){
+					if (currBoxIdx == widget.boxIdx){
+						// Unselect the box
+						currBoxIdx = -1;
+						clr = dullCyan;
+					} else if (currBoxIdx == -1){
+					  // No box seleccted select this one
+					  currBoxIdx = widget.boxIdx;
+					  clr = brightCyan;
+					}else{ //trying to select this box while another one is selected
+					  print("Unselect the previous box");
+					}
+				  });
 				},
 			  //behavior: HitTestBehavior.deferToChild,
 			  onPanUpdate: (details) {
@@ -205,13 +225,13 @@ class _OverlayBoxState extends State<OverlayBox> {
 				});
 			  },
 			  child: CustomPaint( 
-					  foregroundPainter: DrawSkeleton(),
+					  foregroundPainter: DrawRect(widget.boxIdx, clr),
 					  willChange: true,
 					  child: Align(
 						alignment: _dragAlignment,
 						child: Tooltip(
 						   message: boxText[widget.ptIdx],
-						   child: Icon( Icons.circle, key:widget.iconKey,size:15, color: dull),
+						   child: Icon( Icons.circle, key:widget.iconKey,size:20, color: clr),
 						)
 					  ),
 					  ),
