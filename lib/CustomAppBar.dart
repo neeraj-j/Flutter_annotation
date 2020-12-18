@@ -1,18 +1,24 @@
 import 'dart:html' ;
 import 'dart:async';
-import 'package:cached_network_image/cached_network_image.dart';
+//import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'dart:html' as html;
 import 'package:file_picker_web/file_picker_web.dart';
 import 'package:image_whisperer/image_whisperer.dart';
-import 'package:vector_math/vector_math_64.dart' show Vector3;
+//import 'package:vector_math/vector_math_64.dart' show Vector3;
 import 'dart:ui' as ui;
-import 'Painter.dart';
 import 'overlay.dart';
 import 'Common.dart';
 import 'Globals.dart';
+import 'Coco.dart';
+
+// Get json data from url
+// https://flutter.dev/docs/cookbook/networking/fetch-data
 
 class CustomAppBar extends StatefulWidget {
+
+  CustomAppBar({Key key}) : super(key: key);
+
   @override
   _CustomAppBarState createState() => _CustomAppBarState();
 }
@@ -66,7 +72,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
     ImageInfo imageInfo = await completer.future;
     return imageInfo.image;
   }
-
+  // not used
   Future<List<int>> fileAsBytes(html.File _file) async {
 	final Completer<List<int>> bytesFile = Completer<List<int>>();
     final html.FileReader reader = html.FileReader();
@@ -87,8 +93,6 @@ class _CustomAppBarState extends State<CustomAppBar> {
 	// this is the max space allocated for image windows
     double maxWidth= MediaQuery.of(context).size.width * 0.8;
     double maxHeight= MediaQuery.of(context).size.height * 0.70;
-	print(maxWidth);
-	print(maxHeight);
     final ScrollController _scrollcontroller = ScrollController();
     return Material(
       // Top container
@@ -256,48 +260,11 @@ class _CustomAppBarState extends State<CustomAppBar> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
-                              IconButton(
-                                icon: Icon(Icons.play_arrow_outlined,
-                                    color: Colors.blue[400]),
-                                onPressed: () {},
-                                alignment: Alignment.centerRight,
-                                hoverColor: Colors.amber[200],
-                              ),
-                              IconButton(
-                                icon: Icon(Icons.brush_outlined,
-                                    color: Colors.blue[400]),
-                                onPressed: () {},
-                                alignment: Alignment.centerRight,
-                                hoverColor: Colors.amber[200],
-                              ),
-                              IconButton(
-                                icon: Icon(Icons.crop_square_rounded,
-                                    color: Colors.blue[400]),
-                                onPressed: () {_showOverlayBox(context);},
-                                alignment: Alignment.centerRight,
-                                hoverColor: Colors.amber[200],
-                              ),
-                              IconButton(
-                                icon: Icon(Icons.house_siding_rounded,
-                                    color: Colors.blue[400]),
-                                onPressed: () {},
-                                alignment: Alignment.centerRight,
-                                hoverColor: Colors.amber[200],
-                              ),
-                              IconButton(
-                                icon: Icon(Icons.search_rounded,
-                                    color: Colors.blue[400]),
-                                onPressed: () {},
-                                alignment: Alignment.centerRight,
-                                hoverColor: Colors.amber[200],
-                              ),
-                              IconButton(
-                                icon: Icon(Icons.contact_support_sharp,
-                                    color: Colors.blue[400]),
-                                onPressed: () {},
-                                alignment: Alignment.centerRight,
-                                hoverColor: Colors.amber[200],
-                              ),
+							  iconButton(Icons.folder_open,(){_pickFiles();}, "Load Images"),
+							  iconButton(Icons.upload_file,()=>{readCocoFile()}, "Load Coco File"),
+							  iconButton(Icons.save,()=>{writeCocoFile()}, "Save Coco file"),
+							  iconButton(Icons.crop_square_outlined,()=>{_showOverlayBox(context)}, "Insert Bounding Box"),
+							  //arrow_left_sharp, arrow_right (next image)
                               Padding(
                                 padding: const EdgeInsets.only(top: 150.0),
                                 child: Column(
@@ -429,9 +396,9 @@ class _CustomAppBarState extends State<CustomAppBar> {
 																	imgScale = (wScale > hScale)?wScale : hScale;
 																	//Todo: calculate cuurr image size based on windows size
 																	_currImgUrl = blobImage.url;
+																	purgeOverlayEntry();
 																	renderImg();
 																	// Todo: save keypoints
-																	purgeOverlayEntry();
                                                               },
                                                               child: SizedBox(
                                                                 width: 150,
@@ -614,10 +581,10 @@ class _CustomAppBarState extends State<CustomAppBar> {
 	GlobalKey topKey = GlobalKey(); // Icon key to exrect top location from icon
 	GlobalKey botKey = GlobalKey(); // Icon key to exrect bottom location from icon
 	var _overlayMap = { 
-	  "boxOvrls" : new List<OverlayEntry>(2), //list of box icons
-	  "boxKeys": new List<GlobalKey>(2), //icon and bottom point
-	  "kpKeys": new List<GlobalKey>(17), //Top and bottom point
-	  "kpOvrls" : new List<OverlayEntry>(17),
+	  "boxOvrls" : new List<OverlayEntry>.filled(2,null), //list of box icons
+	  "boxKeys": new List<GlobalKey>.filled(2,null), //icon and bottom point
+	  "kpKeys": new List<GlobalKey>.filled(17,null), //Top and bottom point
+	  "kpOvrls" : new List<OverlayEntry>.filled(17,null),
 	  // Todo: add segmentation also
 	};
 	// Index is 1 less than len

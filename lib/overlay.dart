@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'Common.dart';
 import 'Globals.dart';
+import 'dart:io';
 // Implements overlay class for dots
 // This key is used for image widget
 
@@ -74,10 +75,10 @@ class _ImgContainerState extends State<ImgContainer> {
         },
         // Pan the image
         onPanUpdate: (details) {
-          // double x = (details.delta.dx) * (2.0/currImgWidth );
-          // double y = (details.delta.dy) * (2/currImgHeight );
+           //double x = (details.delta.dx) * (2.0/currImgWidth );
+           //double y = (details.delta.dy) * (2/currImgHeight );
           // Set globale parameter and reder again
-          // _dxy = _currentImage.alignment.add(Alignment(x,y));
+           //_dxy = _currentImage.alignment.add(Alignment(x,y));
           // renderImg();
         },
 		child: Image.network(widget.imgUrl,

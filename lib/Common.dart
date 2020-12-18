@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'Globals.dart';
+import 'dart:io';
 
 
 // Remove overlay keypoint entry
@@ -22,6 +23,8 @@ void removeOverlayBoxEntry(int boxIdx) {
   }
   // remove all 17 keypoints inside it
   for (var i = 0; i < 17; i++) {
+	if ( boxList[boxIdx]["kpOvrls"][i] == null)
+		continue;
 	boxList[boxIdx]["kpOvrls"][i].remove();	
 	boxList[boxIdx]["kpOvrls"][i] = null;	
 	boxList[boxIdx]["kpKeys"][i] = null;	
@@ -42,6 +45,8 @@ void purgeOverlayEntry() {
 	}
 	// remove all 17 keypoints inside it
 	for (var i = 0; i < 17; i++) {
+	  if ( boxList[k]["kpOvrls"][i] == null)
+		continue;
 	  boxList[k]["kpOvrls"][i].remove();	
 	  boxList[k]["kpOvrls"][i] = null;	
 	  boxList[k]["kpKeys"][i] = null;	
@@ -159,4 +164,18 @@ class DrawRect extends CustomPainter {
   bool shouldRepaint(CustomPainter oldDelegate) {
     return true;
   }
+}
+
+
+Widget iconButton(IconData name, Function f, String msg){
+    return Tooltip(
+		message: msg,
+		child: IconButton(
+      icon: Icon(name,
+          color: Colors.blue[400]),
+      onPressed: f,
+      alignment: Alignment.centerRight,
+      hoverColor: Colors.amber[200],
+	  ),
+    );
 }

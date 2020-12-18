@@ -27,7 +27,8 @@ dependencies:
   file_picker_web:
   image_whisperer: ^0.11.1
   cached_network_image: ^2.3.3
-  image_picker: ^ 0.4.5
+  image_picker: ^0.4.5
+  file_picker: 2.1.4
 
 
   # The following adds the Cupertino Icons font to your application.
