@@ -13,6 +13,8 @@ Color white = Colors.white; // On de select
 double imgScale = 1.0;
 double orgImgWidth;
 double orgImgHeight;
+// Index of displayed image
+int currImgIdx=0;
 
 // Skeleton
 List<List<int>> skeleton = [

@@ -97,20 +97,26 @@ class OverlayKP extends StatefulWidget {
     @required this.boxIdx,
     @required this.kpIdx,
 	@required this.iconKey,
+	@required this.kAlign,
   }) : super(key: key);
 
   final BuildContext pContext;
   final int boxIdx;
   final int kpIdx;
   final GlobalKey iconKey;
-
+  final Alignment kAlign;
 
   @override
   _OverlayKPState createState() => _OverlayKPState();
 }
 
 class _OverlayKPState extends State<OverlayKP> {
-  Alignment _dragAlignment = Alignment.center;
+  Alignment _dragAlignment;
+  @override
+  void initState() {
+    super.initState();
+	_dragAlignment = widget.kAlign;
+  }
 
   @override
   Widget build(BuildContext pContext) {
@@ -166,20 +172,28 @@ class OverlayBox extends StatefulWidget {
     @required this.boxIdx,
     @required this.ptIdx,
 	@required this.iconKey,
+	@required this.align,
   }) : super(key: key);
 
   final BuildContext pContext;
   final int boxIdx;
   final int ptIdx;
   final GlobalKey iconKey;
+  Alignment align;
 
   @override
   _OverlayBoxState createState() => _OverlayBoxState();
 }
 
 class _OverlayBoxState extends State<OverlayBox> {
-  Alignment _dragAlignment = Alignment.center;
+  //Alignment _dragAlignment = Alignment.center;
   Color clr = dullCyan;
+  Alignment _dragAlignment;
+  @override
+  void initState() {
+    super.initState();
+	_dragAlignment = widget.align;
+  }
 
   @override
   Widget build(BuildContext pContext) {
@@ -191,7 +205,7 @@ class _OverlayBoxState extends State<OverlayBox> {
 			child: GestureDetector(
 				onSecondaryLongPress: (){
 				  // Delete 
-				  print("rigt mouse Long Press working");
+				  removeOverlayBoxEntry(widget.boxIdx);
 				},
 				onTap: (){
 				  // select and heighlight
@@ -222,7 +236,6 @@ class _OverlayBoxState extends State<OverlayBox> {
 				  else if (x < -1.0){_dragAlignment = Alignment(-1.0,y);}
 				  if (y > 1.0){_dragAlignment = Alignment(x,1.0) ;}
 				  else if (y < -1.0){_dragAlignment = Alignment(x,-1.0);}
-
 				});
 			  },
 			  child: CustomPaint( 
