@@ -28,9 +28,8 @@ class _CustomAppBarState extends State<CustomAppBar> {
   List<html.File> _files = [];
 
   AlignmentGeometry _dxy = Alignment(0, 0);
-  String _currImgUrl = "";
+  String _currImgUrl = "Images/logo.jpg";
 
-  //Image _currentImage = Image.asset('Images/logo.jpg');
   ImgContainer _currentImage = ImgContainer(
       imgUrl: "Images/logo.jpg",
       winWidth: null,
@@ -265,7 +264,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
                                                                   snapshot.data,
                                                                   maxWidth,
                                                                   maxHeight);
-															  //loadAnns(context, _files[index].name); 
+															  loadAnns(context, _files[index].name); 
                                                             },
                                                             child: SizedBox(
                                                               width: 150,
@@ -453,7 +452,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
     // Generate the overlay entry
     _overlayTopIcon = OverlayEntry(builder: (BuildContext context) {
       return OverlayBox(
-          pContext: context,
+     //     pContext: context,
           boxIdx: _boxIdx,
           ptIdx: 0,
           iconKey: topKey,
@@ -461,7 +460,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
     });
     _overlayBotIcon = OverlayEntry(builder: (BuildContext context) {
       return OverlayBox(
-          pContext: context,
+      //    pContext: context,
           boxIdx: _boxIdx,
           ptIdx: 1,
           iconKey: botKey,
@@ -491,18 +490,17 @@ class _CustomAppBarState extends State<CustomAppBar> {
       print('Error: No box selected');
       return;
     }
-	print(currBoxIdx);
     if (boxList[currBoxIdx]["kpOvrls"][kpIdx] != null) {
       return;
     }
     OverlayEntry _overlayItem;
     GlobalKey icKey = GlobalKey(); // Icon key to exrect KP location from icon
     OverlayState overlayState = Overlay.of(context);
-    int _boxIdx = currBoxIdx; // Do not pass cuurBoxIdx directly to overlayKP
+    int _boxIdx = currBoxIdx; // Do not pass curBoxIdx directly to overlayKP
     // Generate the overlay entry
     _overlayItem = OverlayEntry(builder: (BuildContext context) {
       return OverlayKP(
-          pContext: context,
+       //   pContext: context,
           boxIdx: _boxIdx,
           kpIdx: kpIdx,
           iconKey: icKey,
@@ -544,7 +542,6 @@ class _CustomAppBarState extends State<CustomAppBar> {
   void loadAnns(BuildContext lcontext, String fName) {
 	if (images.isEmpty){return;}
 	if (!images.containsKey(fName)){return;}
-	print("????");
     int id = images[fName]['id'];
     int _w = images[fName]['width'];
     int _h = images[fName]['height'];
@@ -577,6 +574,8 @@ class _CustomAppBarState extends State<CustomAppBar> {
         }
       }
     }
+	// Once all the loading is complete
+	currBoxIdx = -1;
   }
 
   BoxDecoration myBoxDecoration() {

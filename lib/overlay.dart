@@ -93,14 +93,14 @@ class _ImgContainerState extends State<ImgContainer> {
 class OverlayKP extends StatefulWidget {
   OverlayKP({
     Key key,
-    @required this.pContext,
+    //@required this.pContext,
     @required this.boxIdx,
     @required this.kpIdx,
 	@required this.iconKey,
 	@required this.kAlign,
   }) : super(key: key);
 
-  final BuildContext pContext;
+  //final BuildContext pContext;
   final int boxIdx;
   final int kpIdx;
   final GlobalKey iconKey;
@@ -119,7 +119,7 @@ class _OverlayKPState extends State<OverlayKP> {
   }
 
   @override
-  Widget build(BuildContext pContext) {
+  Widget build(BuildContext context) {
     Rect overlayPos = getPosition(imgKey);
 	Color clr = (widget.kpIdx %2 == 0)? Colors.green[400]: Colors.red[400];
 
@@ -143,7 +143,6 @@ class _OverlayKPState extends State<OverlayKP> {
 				  else if (x < -1.0){_dragAlignment = Alignment(-1.0,y);}
 				  if (y > 1.0){_dragAlignment = Alignment(x,1.0) ;}
 				  else if (y < -1.0){_dragAlignment = Alignment(x,-1.0);}
-
 				});
 			  },
 			  child: CustomPaint( 
@@ -168,14 +167,14 @@ class _OverlayKPState extends State<OverlayKP> {
 class OverlayBox extends StatefulWidget {
   OverlayBox({
     Key key,
-    @required this.pContext,
+   // @required this.pContext,
     @required this.boxIdx,
     @required this.ptIdx,
 	@required this.iconKey,
 	@required this.align,
   }) : super(key: key);
 
-  final BuildContext pContext;
+  //final BuildContext pContext;
   final int boxIdx;
   final int ptIdx;
   final GlobalKey iconKey;
@@ -196,7 +195,7 @@ class _OverlayBoxState extends State<OverlayBox> {
   }
 
   @override
-  Widget build(BuildContext pContext) {
+  Widget build(BuildContext context) {
     Rect overlayPos = getPosition(imgKey);
 
     return CustomSingleChildLayout(

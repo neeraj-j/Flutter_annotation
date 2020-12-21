@@ -6,7 +6,6 @@ import 'dart:io';
 
 // Remove overlay keypoint entry
 void removeOverlayKpEntry(int boxIdx, int kpIdx) {
-  print(boxIdx);
   boxList[boxIdx]["kpOvrls"][kpIdx].remove();
   boxList[boxIdx]["kpOvrls"][kpIdx] = null;
   boxList[boxIdx]["kpKeys"][kpIdx] = null;
@@ -28,7 +27,7 @@ void removeOverlayBoxEntry(int boxIdx) {
     boxList[boxIdx]["kpKeys"][i] = null;
   }
   // remove box entry
-	boxList.removeAt(boxIdx);
+  boxList.removeAt(boxIdx);
 }
 
 // Remove all overlay keypoint entry
@@ -51,9 +50,7 @@ void purgeOverlayEntry() {
     }
   }
   // remove boxList entries
-  for (var k = 0; k < boxList.length; k++) {
-	boxList.removeAt(k);
-  }
+  boxList.clear();
 }
 
 // This funtion willl return relative position of widget
