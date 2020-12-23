@@ -1,4 +1,5 @@
 // this file implements main window
+// This file loads local files and not remote files
 
 import 'dart:html';
 import 'dart:async';
@@ -14,7 +15,6 @@ import 'Common.dart';
 import 'Globals.dart';
 import 'Coco.dart';
 import 'Widgets.dart';
-import 'dart:typed_data';
 
 // Get json data from url
 // https://flutter.dev/docs/cookbook/networking/fetch-data
@@ -31,14 +31,15 @@ class _CustomAppBarState extends State<CustomAppBar> {
 
 
   AlignmentGeometry _dxy = Alignment(0, 0);
-   
+  String _currImgUrl = "Images/logo.jpg";
+
   ImgContainer _currentImage = ImgContainer(
-      imgIdx: -1,
+      imgUrl: "Images/logo.jpg",
       winWidth: null,
       winHeight: null,
       scale: 2.2,
       align: Alignment.center);
-  
+
   var labelItems = {
     "nose": 0,
     "left_eye": 1,
@@ -59,11 +60,11 @@ class _CustomAppBarState extends State<CustomAppBar> {
     "right_ankle": 16,
   };
 
-  void renderImg(imIdx) {
+  void renderImg() {
     setState(() {
       //	_currentImage = Image.network(_currImgUrl, scale:_scale, fit:BoxFit.none, alignment: _dxy);
       _currentImage = new ImgContainer(
-          imgIdx: imIdx,
+          imgUrl: _currImgUrl,
           winWidth: null,
           winHeight: null,
           scale: imgScale,
@@ -71,10 +72,51 @@ class _CustomAppBarState extends State<CustomAppBar> {
     });
   }
 
+  
+  List<html.File> _files = [];
+  //Using this as I need image size
+  Future<ui.Image> getImage(File _file) async {
+    Completer<ImageInfo> completer = Completer();
+    BlobImage blobImage = new BlobImage(_file, name: _file.name);
+    var img = new NetworkImage(blobImage.url);
+    img
+        .resolve(ImageConfiguration())
+        .addListener(ImageStreamListener((ImageInfo info, bool _) {
+      completer.complete(info);
+    }));
+    ImageInfo imageInfo = await completer.future;
+    return imageInfo.image;
+  }
+
+  // not used
+  Future<List<int>> fileAsBytes(html.File _file) async {
+    final Completer<List<int>> bytesFile = Completer<List<int>>();
+    final html.FileReader reader = html.FileReader();
+    reader.onLoad.listen((event) => bytesFile.complete(reader.result));
+    reader.readAsArrayBuffer(_file);
+    return await bytesFile.future;
+  }
+
   void _pickFiles() async {
-    files = await getFileList();
+    _files = await FilePicker.getMultiFile() ?? [];
+	//getFileList();
+	//getImageData("000000216296.jpg");
+
     setState(() {});
   }
+ /* 
+  Future<ui.Image> getImage(String _file) async {
+	var response = getImage(_file);
+	print(response);
+	return null;
+  }
+
+
+  void _pickFiles() async {
+    _files = await getFileList();
+    setState(() {});
+  }
+  */
 
   @override
   Widget build(BuildContext context) {
@@ -123,14 +165,16 @@ class _CustomAppBarState extends State<CustomAppBar> {
                                   "Insert Bounding Box"),
                               iconButtonBlue(Icons.skip_next, () async {
                                 // Todo: check for index overflow
-                                if (currImgIdx + 1 < files.length) {
+                                if (currImgIdx + 1 < _files.length) {
                                   currImgIdx++;
                                 } else {
                                   print("Last file");
                                 }
 
-                                //ui.Image img =
-                                loadImage(currImgIdx, context);
+                                ui.Image img =
+                                    await getImage(_files[currImgIdx]);
+                                loadImage(currImgIdx, img,context);
+								loadAnns(context, _files[currImgIdx].name); 
                               }, "Next Image"),
                               iconButtonBlue(Icons.skip_previous, () async {
                                 if (currImgIdx - 1 >= 0) {
@@ -138,8 +182,12 @@ class _CustomAppBarState extends State<CustomAppBar> {
                                 } else {
                                   print("First file");
                                 }
-                                //ui.Image img =
-                                loadImage(currImgIdx, context);
+                                ui.Image img =
+                                    await getImage(_files[currImgIdx]);
+                                loadImage(currImgIdx, img,context);
+								loadAnns(context, _files[currImgIdx].name); 
+                                //coco.categories[0]['supercategory'] = "new";
+                                //print(coco.categories[0]['supercategory']);
                               }, "Previous Image"),
                               //arrow_left_sharp, arrow_right (next image)
                               Padding(
@@ -148,11 +196,11 @@ class _CustomAppBarState extends State<CustomAppBar> {
                                   children: [
                                     iconButtonBlack(Icons.zoom_in_rounded, () {
                                       imgScale -= 0.1;
-                                      renderImg(currImgIdx);
+                                      renderImg();
                                     }, "Zoom In"),
                                     iconButtonBlack(Icons.zoom_out_rounded, () {
                                       imgScale += 0.1;
-                                      renderImg(currImgIdx);
+                                      renderImg();
                                     }, "Zoom Out"),
                                   ],
                                 ),
@@ -215,31 +263,31 @@ class _CustomAppBarState extends State<CustomAppBar> {
                               child: Container(
                                 // color: Colors.deepOrange,
                                 //child: Expanded(
-                                child: files.isNotEmpty
+                                child: _files.isNotEmpty
                                     ? ListView.separated(
                                         padding: EdgeInsets.all(10.0),
                                         scrollDirection: Axis.horizontal,
                                         itemBuilder:
-                                            (BuildContext context, int fidx) =>
+                                            (BuildContext context, int index) =>
                                                 Column(
                                           children: [
-                                            //FutureBuilder<ui.Image>(
-                                            FutureBuilder<Uint8List>(
-                                                future: getImage(fidx),
+                                            FutureBuilder<ui.Image>(
+                                                future: getImage(_files[index]),
                                                 builder: (context, snapshot) =>
                                                     snapshot.hasData
                                                         ? GestureDetector(
                                                             onTap: () {
                                                               loadImage(
-                                                                  fidx,
+                                                                  index,
+                                                                  snapshot.data,
                                                                   context);
+															  loadAnns(context, _files[index].name); 
                                                             },
                                                             child: SizedBox(
                                                               width: 150,
                                                               height: 75,
-                                                              //child: RawImage(
-                                                              child: Image.memory(
-                                                                   snapshot
+                                                              child: RawImage(
+                                                                  image: snapshot
                                                                       .data),
                                                             ),
                                                           )
@@ -248,13 +296,13 @@ class _CustomAppBarState extends State<CustomAppBar> {
                                                 width: 150,
                                                 height: 30,
                                                 child: Text(
-                                                  " ${files[fidx]['name']}",
+                                                  " ${_files[index].name}",
                                                   style:
                                                       TextStyle(fontSize: 10.0),
                                                 )),
                                           ],
                                         ),
-                                        itemCount: files.length,
+                                        itemCount: _files.length,
                                         separatorBuilder: (_, __) =>
                                             const Divider(
                                           indent: 10,
@@ -489,35 +537,35 @@ class _CustomAppBarState extends State<CustomAppBar> {
 
   // Load new image and annnotations
   // click on image list and next button
-  void loadImage(int fidx, BuildContext context) {
+  void loadImage(int index, ui.Image img, BuildContext context) {
     double _maxHeight = MediaQuery.of(context).size.height * 0.70;
     double _maxWidth = MediaQuery.of(context).size.width * 0.8;
 	if (dirtyBit){
 	  // Alert box update/discard
-      showMyDialog(fidx, context);
+      showMyDialog(index, img, context);
 	  print("Save the current Annotations");
 	  return;
 	}
-    orgImgWidth = files[fidx]["width"]; 
-    orgImgHeight = files[fidx]["height"]; 
+    BlobImage blobImage =
+        new BlobImage(_files[index], name: _files[index].name);
+    orgImgWidth = img.width.toDouble();
+    orgImgHeight = img.height.toDouble();
     // scale is opposite greater means smaller
     double wScale = orgImgWidth / _maxWidth;
     double hScale = orgImgHeight / _maxHeight;
     imgScale = (wScale > hScale) ? wScale : hScale;
     //Todo: calculate cuurr image size based on windows size
+    _currImgUrl = blobImage.url;
     // remove previous image annotations
     purgeOverlayEntry();
     // display image
-    renderImg(fidx);
+    renderImg();
     // Display annotaiton overlays
-	loadAnns(context, fidx); 
-	currImgIdx = fidx;
   }
 
   // Load annotation from coco file
-  void loadAnns(BuildContext lcontext, int fidx) {
+  void loadAnns(BuildContext lcontext, String fName) {
 	if (images.isEmpty){return;}
-	String fName = files[fidx]['name'];
 	if (!images.containsKey(fName)){return;}
     int id = images[fName]['id'];
     int _w = images[fName]['width'];
@@ -617,7 +665,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
 	return 0;
   }
   // confirmation dialoge while changing images
-  Future<void> showMyDialog (int index, BuildContext context) async {
+  Future<void> showMyDialog (int index, ui.Image img, BuildContext context) async {
 	return showDialog<void>(
 	  context: context,
 	  barrierDismissible: false, // user must tap button!
@@ -637,7 +685,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
 			  child: Text('Approve'),
 			  onPressed: () {
 				dirtyBit = false;
-				loadImage(index, context);
+				loadImage(index, img, context);
 				Navigator.of(context).pop();
 			  },
 			),
@@ -645,7 +693,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
 			  child: Text('DisApprove'),
 			  onPressed: () {
 				dirtyBit = false;
-				loadImage(index, context);
+				loadImage(index, img, context);
 				Navigator.of(context).pop();
 			  },
 			),

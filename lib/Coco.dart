@@ -7,6 +7,7 @@ import 'dart:async';
 //import 'package:file_picker/file_picker.dart';
 import 'package:file_picker_web/file_picker_web.dart';
 import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 // Coco file strcture for decoding
 // Todo add coco structure
@@ -68,7 +69,8 @@ var _cocoAnnotation = {
   "id" : int,
 };
 
-// Read coco file
+/*
+// Read local coco file
 void readCocoFile() async {
     _jsonFile = await FilePicker.getFile();
 	final Completer<String> bytesFile = Completer<String>();
@@ -79,6 +81,20 @@ void readCocoFile() async {
 	coco = CocoFile.fromJson(jsonDecode(jStr));
 	print("Json Read");
 	indexCoco();
+}
+*/
+// fetch coco file from server
+Future<void> readCocoFile() async {
+  //final http.Response response =  await http.get('yahoo.com/');
+  final response =  await http.get('http://192.168.1.100:9000/coco');
+  //final response =  await http.get('https://jsonplaceholder.typicode.com/albums/1'); 
+    if (response.statusCode == 200) {
+		coco = CocoFile.fromJson(jsonDecode(response.body));
+		print("Json Read");
+		indexCoco();
+  } else {
+    print('Failed to load coco file');
+  }
 }
 
 void indexCoco(){
@@ -104,7 +120,7 @@ void indexCoco(){
 		images[img['file_name']] = img;
 	}
 	print('Indexing complete');
-	//print(images[img['file_name']]['id']);
+	print(images[img['file_name']]['id']);
 }
 
 

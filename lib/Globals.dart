@@ -3,7 +3,8 @@
 import 'package:flutter/material.dart';
 
 final GlobalKey imgKey = GlobalKey();
-
+// Image file list with height and width
+List files = [];
 
 Color brightCyan = Colors.cyanAccent; // On select
 Color dullCyan = Colors.cyanAccent[700]; // On de select
@@ -15,6 +16,8 @@ double orgImgWidth;
 double orgImgHeight;
 // Index of displayed image
 int currImgIdx=0;
+
+bool dirtyBit=false; // if annotation has changed
 
 // Skeleton
 List<List<int>> skeleton = [
@@ -51,6 +54,7 @@ var overlayMap = {
 };
 *****/
 int currBoxIdx = -1;
+// to maintain overlay entries
 List<Map> boxList = [];
 
 

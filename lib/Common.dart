@@ -2,7 +2,10 @@
 
 import 'package:flutter/material.dart';
 import 'Globals.dart';
-import 'dart:io';
+import 'dart:convert';
+import 'dart:io';  // for headers
+import 'dart:typed_data';
+import 'package:http/http.dart' as http;
 
 // Remove overlay keypoint entry
 void removeOverlayKpEntry(int boxIdx, int kpIdx) {
@@ -26,8 +29,8 @@ void removeOverlayBoxEntry(int boxIdx) {
     boxList[boxIdx]["kpOvrls"][i] = null;
     boxList[boxIdx]["kpKeys"][i] = null;
   }
-  // remove box entry
-  boxList.removeAt(boxIdx);
+  // Dont remove box entry
+ //  boxList.removeAt(boxIdx);
 }
 
 // Remove all overlay keypoint entry
@@ -195,3 +198,42 @@ Widget iconButtonBlack(IconData name, Function f, String msg) {
     ),
   );
 }
+
+
+// get the list of file names 
+Future<List> getFileList() async {
+  final response =  await http.get('http://192.168.1.100:9000/images');
+  if (response.statusCode == 200) {
+    //print( jsonDecode(response.body));
+    return jsonDecode(response.body);
+  } else {
+    print('Failed to get file names');
+  }
+  return [];
+}
+
+// get image by name 
+Future<Uint8List> getImage(int idx) async {
+  if (idx<0){return null;}
+  String url ='http://192.168.1.100:9000/images/'+files[idx]['name'] ;
+  Map<String, String> requestHeaders = {
+       'Accept': 'application/json; charset=utf-8',
+     };
+  final response =  await http.get(url, headers: requestHeaders);
+  Uint8List bytes;
+  if (response.statusCode == 200) {
+    files[idx]["width"] = jsonDecode(response.body)["width"];
+    files[idx]["height"] = jsonDecode(response.body)["height"];
+    var _base64 =  jsonDecode(response.body)["image"];
+	bytes = base64.decode(_base64);
+  } else {
+    print('Failed to load image');
+  }
+  //  new Image.memory(bytes),
+  return bytes;
+}
+
+
+
+
+
