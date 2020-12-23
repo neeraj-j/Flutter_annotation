@@ -2,7 +2,8 @@
 
 import 'package:flutter/material.dart';
 
-final GlobalKey imgKey = GlobalKey();
+final GlobalKey imgKey = GlobalKey();  // sizedBox key
+final GlobalKey imgColKey = GlobalKey(); // Image parentbox key
 // Image file list with height and width
 List files = [];
 
