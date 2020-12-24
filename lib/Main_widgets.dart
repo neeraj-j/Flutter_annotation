@@ -1,15 +1,6 @@
 // This file contains the layut widhets used in main file
 
-import 'dart:html';
-import 'dart:async';
-//import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'dart:html' as html;
-import 'package:file_picker_web/file_picker_web.dart';
-import 'package:image_whisperer/image_whisperer.dart';
-//import 'package:vector_math/vector_math_64.dart' show Vector3;
-import 'dart:ui' as ui;
-import 'overlay.dart';
 import 'Common.dart';
 import 'Globals.dart';
 import 'Coco.dart';
@@ -52,10 +43,12 @@ Widget menuColumn(context, renderImg, _pickFiles) {
             _pickFiles();
           }, "Open Images"),
           iconButtonBlue(
-              Icons.upload_file, () => {readCocoFile()}, "Load Coco File"),
+              Icons.upload_file, coco!=null ? null: () => {readCocoFile()}, "Load Coco File"),
           iconButtonBlue(Icons.save, () => {writeCocoFile()}, "Save Coco file"),
+		  Divider( indent:1, thickness:2, height:2),
           iconButtonBlue(Icons.crop_square_outlined,
               () => {showOverlayBox(context)}, "Insert Bounding Box"),
+		  Divider( indent:2, thickness:2, height:2),
           iconButtonBlue(Icons.skip_next, () async {
             // Todo: check for index overflow
             if (currImgIdx + 1 < files.length) {
@@ -225,4 +218,8 @@ BoxDecoration myBoxDecoration1() {
     // color: Colors.blue[100],
     border: Border(bottom: BorderSide(color: Colors.grey, width: 1)),
   );
+}
+
+Widget divider(height, thickness){
+	return Divider( indent:1, thickness:5);
 }

@@ -3,9 +3,9 @@
 import 'package:flutter/material.dart';
 import 'Globals.dart';
 import 'dart:convert';
-import 'dart:io';  // for headers
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
+import 'package:fluttertoast/fluttertoast.dart';
 
 // Remove overlay keypoint entry
 void removeOverlayKpEntry(int boxIdx, int kpIdx) {
@@ -178,6 +178,8 @@ Widget iconButtonBlue(IconData name, Function f, String msg) {
       icon: Icon(name, color: Colors.blue[400]),
       onPressed: f,
       alignment: Alignment.centerRight,
+	  disabledColor: Colors.grey,
+	  splashColor: Colors.blue[900],
       hoverColor: Colors.amber[200],
     ),
   );
@@ -207,7 +209,9 @@ Future<List> getFileList() async {
     //print( jsonDecode(response.body));
     return jsonDecode(response.body);
   } else {
-    print('Failed to get file names');
+	Fluttertoast.showToast(msg: "Failed to get file Names",
+		  timeInSecForIosWeb: 5,
+		  gravity: ToastGravity.TOP);
   }
   return [];
 }
@@ -227,7 +231,9 @@ Future<Uint8List> getImage(int idx) async {
     var _base64 =  jsonDecode(response.body)["image"];
 	bytes = base64.decode(_base64);
   } else {
-    print('Failed to load image');
+	Fluttertoast.showToast(msg: "Failed to get file Names",
+		  timeInSecForIosWeb: 5,
+		  gravity: ToastGravity.TOP);
   }
   //  new Image.memory(bytes),
   return bytes;

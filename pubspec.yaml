@@ -24,16 +24,15 @@ dependencies:
   flutter:
     sdk: flutter
   file_picker_web:
-  image_whisperer: ^0.11.1
   cached_network_image: ^2.3.3
   image_picker: ^0.4.5
   file_picker: 2.1.4
   http: 0.12.2
+  fluttertoast: 
 
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.0
 
 dev_dependencies:
   flutter_test:

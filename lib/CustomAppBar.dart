@@ -1,23 +1,10 @@
 // this file implements main window
 
-import 'dart:html';
-import 'dart:async';
-//import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'dart:html' as html;
-import 'package:file_picker_web/file_picker_web.dart';
-import 'package:image_whisperer/image_whisperer.dart';
-//import 'package:vector_math/vector_math_64.dart' show Vector3;
-import 'dart:ui' as ui;
 import 'overlay.dart';
 import 'Common.dart';
 import 'Globals.dart';
-import 'Coco.dart';
 import 'Main_widgets.dart';
-import 'dart:typed_data';
-
-// Get json data from url
-// https://flutter.dev/docs/cookbook/networking/fetch-data
 
 class CustomAppBar extends StatefulWidget {
   CustomAppBar({Key key}) : super(key: key);
@@ -61,16 +48,12 @@ class _CustomAppBarState extends State<CustomAppBar> {
     // this is the max space allocated for image windows
     final ScrollController _scrollcontroller = ScrollController();
     return Material(
-      // Top container
+      // Leave as it is. chaning it removes custom panint skeleton
       child: ListView(
-        //     shrinkWrap: true,
         children: <Widget>[
-          // Menu Row
-          // Second Row: 3 columns: Icons, image, labels/Filelist
-          //Container(
           SizedBox(
-            width: MediaQuery.of(context).size.width * 0.05,
-            height: MediaQuery.of(context).size.height * 0.9,
+            width: MediaQuery.of(context).size.width ,
+            height: MediaQuery.of(context).size.height ,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,

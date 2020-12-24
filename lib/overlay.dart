@@ -130,6 +130,7 @@ class _OverlayKPState extends State<OverlayKP> {
           // Long press not working
           removeOverlayKpEntry(widget.boxIdx, widget.kpIdx);
           dirtyBit = true;
+		  boxList[widget.boxIdx]["changed"][1] = true;
         },
         //behavior: HitTestBehavior.deferToChild,
         onPanUpdate: (details) {
@@ -152,6 +153,7 @@ class _OverlayKPState extends State<OverlayKP> {
             }
           });
           dirtyBit = true;
+		  boxList[widget.boxIdx]["changed"][1] = true;
         },
         child: CustomPaint(
           foregroundPainter: DrawSkeleton(widget.boxIdx),
@@ -214,6 +216,7 @@ class _OverlayBoxState extends State<OverlayBox> {
           // Delete
           removeOverlayBoxEntry(widget.boxIdx);
           dirtyBit = true;
+		  boxList[widget.boxIdx]["changed"][0] = true;
         },
         onTap: () {
           // select and heighlight
@@ -253,6 +256,7 @@ class _OverlayBoxState extends State<OverlayBox> {
             }
           });
           dirtyBit = true;
+		  boxList[widget.boxIdx]["changed"][0] = true;
         },
         child: CustomPaint(
           foregroundPainter: DrawRect(widget.boxIdx, clr),

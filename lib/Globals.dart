@@ -18,7 +18,7 @@ double orgImgHeight;
 // Index of displayed image
 int currImgIdx=0;
 
-bool dirtyBit=false; // if annotation has changed
+bool dirtyBit= false; // if annotation has changed
 
 // Skeleton
 List<List<int>> skeleton = [

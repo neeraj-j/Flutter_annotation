@@ -1,25 +1,17 @@
 // This file contains the main logic functions
-import 'dart:html';
 import 'dart:async';
-//import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'dart:html' as html;
-import 'package:file_picker_web/file_picker_web.dart';
-import 'package:image_whisperer/image_whisperer.dart';
-//import 'package:vector_math/vector_math_64.dart' show Vector3;
-import 'dart:ui' as ui;
 import 'overlay.dart';
 import 'Common.dart';
 import 'Globals.dart';
 import 'Coco.dart';
-import 'Main_widgets.dart';
-import 'dart:typed_data';
+import 'package:fluttertoast/fluttertoast.dart';
 
 
 
   // Implements BoundingBox overlays
-  void showOverlayBox(BuildContext context,
-      {tAlign = Alignment.center, bAlign = Alignment.center}) async {
+  void showOverlayBox(BuildContext context, 
+      {tAlign = Alignment.center, bAlign = Alignment.center, annId=-1}) async {
     OverlayEntry _overlayTopIcon;
     OverlayEntry _overlayBotIcon;
     OverlayState overlayState = Overlay.of(context);
@@ -31,6 +23,8 @@ import 'dart:typed_data';
       "boxKeys": new List<GlobalKey>.filled(2, null), //icon and bottom point
       "kpKeys": new List<GlobalKey>.filled(17, null), //Top and bottom point
       "kpOvrls": new List<OverlayEntry>.filled(17, null),
+	  "changed": List<bool>.filled(2,false),
+	  "annId": List<int>.filled(1,0),
       // Todo: add segmentation also
     };
     // Index is 1 less than len
@@ -58,6 +52,8 @@ import 'dart:typed_data';
     _overlayMap["boxOvrls"][1] = _overlayBotIcon;
     _overlayMap["boxKeys"][0] = topKey;
     _overlayMap["boxKeys"][1] = botKey;
+	//Todo: new box annid is -1 fix while saving
+    _overlayMap["annId"][0] = annId;
     boxList.add(_overlayMap);
     // Todo: append currentBoxIdx to ptIdx
     // add icon key to extract position of keypoint
@@ -74,7 +70,9 @@ import 'dart:typed_data';
   void showOverlayKeypoint(BuildContext context, int kpIdx,
       {align: Alignment.center}) async {
     if (currBoxIdx == -1) {
-      print('Error: No box selected');
+	  Fluttertoast.showToast(msg: "Error: No Box Selected ",
+		  timeInSecForIosWeb: 5,
+		  gravity: ToastGravity.CENTER);
       return;
     }
     if (boxList[currBoxIdx]["kpOvrls"][kpIdx] != null) {
@@ -113,7 +111,6 @@ import 'dart:typed_data';
     if (dirtyBit) {
       // Alert box update/discard
       showMyDialog(fidx, context, renderImg);
-      print("Save the current Annotations");
       return;
     }
     orgImgWidth = files[fidx]["width"];
@@ -141,13 +138,14 @@ import 'dart:typed_data';
     if (!images.containsKey(fName)) {
       return;
     }
-    int id = images[fName]['id'];
+    int imid = images[fName]['id'];
     int _w = images[fName]['width'];
     int _h = images[fName]['height'];
     // process anns for the image
-    for (int i = 0; i < imgToAnns[id].length; i++) {
-      List<dynamic> bbox = imgToAnns[id][i]['bbox'];
-      List<dynamic> kps = imgToAnns[id][i]['keypoints'];
+    for (int i = 0; i < imgToAnns[imid].length; i++) {
+      List<dynamic> bbox = imgToAnns[imid][i]['bbox'];
+      List<dynamic> kps = imgToAnns[imid][i]['keypoints'];
+	  int annId = imgToAnns[imid][i]['id'];
       // Draw bbox
       Offset tOff = Offset(bbox[0], bbox[1]); //.scale(imgScale, imgScale);
       Offset bOff = Offset(
@@ -157,8 +155,7 @@ import 'dart:typed_data';
           Alignment((tOff.dx - _w / 2) * 2 / _w, (tOff.dy - _h / 2) * 2 / _h);
       Alignment bAlign =
           Alignment((bOff.dx - _w / 2) * 2 / _w, (bOff.dy - _h / 2) * 2 / _h);
-      //print(bAlign);
-      showOverlayBox(lcontext, tAlign: tAlign, bAlign: bAlign);
+      showOverlayBox(lcontext, tAlign: tAlign, bAlign: bAlign, annId:annId);
 
       // Draw Keypooints
       for (int i = 0; i < kps.length; i += 3) {
@@ -169,7 +166,6 @@ import 'dart:typed_data';
         if (v != 0) {
           Alignment align =
               Alignment((x - _w / 2) * 2 / _w, (y - _h / 2) * 2 / _h);
-          //print(align);
           showOverlayKeypoint(lcontext, (i / 3).round(), align: align);
         }
       }
@@ -248,26 +244,28 @@ import 'dart:typed_data';
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('AlertDialog Title'),
+          title: Text('Image Modified!!'),
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                Text('This is a demo alert dialog.'),
-                Text('Would you like to approve of this message?'),
+                Text('You have changed the Image'),
+                Text('Accept or Discard the changes'),
               ],
             ),
           ),
           actions: <Widget>[
             TextButton(
-              child: Text('Approve'),
+              child: Text('Accept'),
               onPressed: () {
                 dirtyBit = false;
+				// Todo: save changes
+				writeCocoFile();
                 loadImage(index, context, renderImg);
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: Text('DisApprove'),
+              child: Text('Discard'),
               onPressed: () {
                 dirtyBit = false;
                 loadImage(index, context, renderImg);
