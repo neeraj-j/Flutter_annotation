@@ -22,7 +22,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
       imgIdx: -1,
       winWidth: null,
       winHeight: null,
-      scale: 2.2,
+      scale: 1.0,
       align: Alignment.center);
 
   void renderImg(imIdx) {
@@ -42,11 +42,10 @@ class _CustomAppBarState extends State<CustomAppBar> {
     setState(() {});
   }
 
+  final ScrollController _scrollcontroller = ScrollController();
 
   @override
   Widget build(BuildContext context) {
-    // this is the max space allocated for image windows
-    final ScrollController _scrollcontroller = ScrollController();
     return Material(
       // Leave as it is. chaning it removes custom panint skeleton
       child: ListView(

@@ -180,7 +180,7 @@ Widget iconButtonBlue(IconData name, Function f, String msg) {
       alignment: Alignment.centerRight,
 	  disabledColor: Colors.grey,
 	  splashColor: Colors.blue[900],
-      hoverColor: Colors.amber[200],
+      hoverColor: Colors.yellowAccent[100],
     ),
   );
 }
@@ -196,7 +196,7 @@ Widget iconButtonBlack(IconData name, Function f, String msg) {
       ),
       onPressed: f,
       alignment: Alignment.centerRight,
-      hoverColor: Colors.amber[200],
+      hoverColor: Colors.yellowAccent[100],
     ),
   );
 }

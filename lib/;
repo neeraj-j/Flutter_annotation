@@ -28,7 +28,7 @@ var labelItems = {
 };
 
 double _menuWidth = 50;
-double _labelsWidth = 200;
+double _labelsWidth = 150;
 double _imgListWidth = 160;
 
 Widget menuColumn(context, renderImg, _pickFiles) {
@@ -42,13 +42,13 @@ Widget menuColumn(context, renderImg, _pickFiles) {
           iconButtonBlue(Icons.folder_open, () {
             _pickFiles();
           }, "Open Images"),
-          iconButtonBlue(Icons.upload_file,
-              coco != null ? null : () => {readCocoFile()}, "Load Coco File"),
+          iconButtonBlue(
+              Icons.upload_file, coco!=null ? null: () => {readCocoFile()}, "Load Coco File"),
           iconButtonBlue(Icons.save, () => {writeCocoFile()}, "Save Coco file"),
-          Divider(indent: 1, thickness: 2, height: 2),
+		  Divider( indent:1, thickness:2, height:2),
           iconButtonBlue(Icons.crop_square_outlined,
               () => {showOverlayBox(context)}, "Insert Bounding Box"),
-          Divider(indent: 2, thickness: 2, height: 2),
+		  Divider( indent:2, thickness:2, height:2),
           iconButtonBlue(Icons.skip_next, () async {
             // Todo: check for index overflow
             if (currImgIdx + 1 < files.length) {
@@ -91,7 +91,7 @@ Widget menuColumn(context, renderImg, _pickFiles) {
 
 Widget imgColumn(context, _currentImage) {
   return Expanded(
-    key: imgColKey,
+	  key: imgColKey,
     child: Column(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -106,35 +106,37 @@ Widget imgColumn(context, _currentImage) {
 Widget labelList(context, _scrollcontroller) {
   return Material(
     child: SizedBox(
-        width: _labelsWidth,
-        height: MediaQuery.of(context).size.height*0.9,
+        width: _labelsWidth, 
+        height: MediaQuery.of(context).size.height,
         child: Column(
           children: [
-              Text(
-                'Labels',
-                style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 25.0,
-                    fontWeight: FontWeight.bold),
-              ),
             Scrollbar(
-			  controller: _scrollcontroller,
-			  isAlwaysShown: true,
-              child: SizedBox(
-                width: _labelsWidth,
-                height: MediaQuery.of(context).size.height * .8,
+			  // Giving error: scroll bar has box as child
+              //controller: _scrollcontroller,
+              //isAlwaysShown: true,
+              child: Container(
+                child: Text(
+                  'Labels',
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 25.0,
+                      fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+            SizedBox(
+              width: _labelsWidth,
+              height: MediaQuery.of(context).size.height * .8,
+              child: Container(
+                //color: Colors.blue,
+                // Labels list
                 child: ListView(
-				  controller: _scrollcontroller,
                   children: labelItems.keys
-                      .map((data) => Card( child:ListTile(
-						  hoverColor: Colors.limeAccent[100],
-						  selectedTileColor: Colors.limeAccent[400],
-						  leading: Icon(Icons.circle, size: 15, color: 
-							    (labelItems[data]%2==0)?Colors.green[400]:Colors.red[400]),
+                      .map((data) => ListTile(
                           title: Text(data),
                           onTap: () {
                             showOverlayKeypoint(context, labelItems[data]);
-                          })))
+                          }))
                       .toList(),
                 ),
               ),
@@ -146,9 +148,9 @@ Widget labelList(context, _scrollcontroller) {
 
 Widget imgList(context, _scrollcontroller, renderImg) {
   return Scrollbar(
-    // Giving error
-    controller: _scrollcontroller,
-    isAlwaysShown: true,
+	  // Giving error
+    //controller: _scrollcontroller,
+    //isAlwaysShown: true,
     child: SizedBox(
       width: _imgListWidth,
       height: MediaQuery.of(context).size.height * 0.9,
@@ -156,7 +158,6 @@ Widget imgList(context, _scrollcontroller, renderImg) {
         // color: Colors.deepOrange,
         child: files.isNotEmpty
             ? ListView.separated(
-				controller: _scrollcontroller,
                 padding: EdgeInsets.all(2.0),
                 scrollDirection: Axis.vertical,
                 itemBuilder: (BuildContext context, int fidx) => Column(
@@ -221,6 +222,6 @@ BoxDecoration myBoxDecoration1() {
   );
 }
 
-Widget divider(height, thickness) {
-  return Divider(indent: 1, thickness: 5);
+Widget divider(height, thickness){
+	return Divider( indent:1, thickness:5);
 }
