@@ -42,6 +42,11 @@ class _CustomAppBarState extends State<CustomAppBar> {
     setState(() {});
   }
 
+  void _remImg() async {
+    files.removeAt(currImgIdx);
+    setState(() {});
+  }
+
   final ScrollController _scrollcontroller = ScrollController();
 
   @override
@@ -57,7 +62,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                menuColumn(context, renderImg, _pickFiles), // Icon columns
+                menuColumn(context, renderImg, _pickFiles, _remImg), // Icon columns
 				imgColumn(context, _currentImage),  // Main image window
 				labelList(context, _scrollcontroller), // Lables
 				imgList(context, _scrollcontroller, renderImg),

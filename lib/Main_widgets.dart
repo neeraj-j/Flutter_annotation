@@ -28,10 +28,10 @@ var labelItems = {
 };
 
 double _menuWidth = 50;
-double _labelsWidth = 200;
+double _labelsWidth = 180;
 double _imgListWidth = 160;
 
-Widget menuColumn(context, renderImg, _pickFiles) {
+Widget menuColumn(context, renderImg, _pickFiles, remImg) {
   return SizedBox(
       width: _menuWidth,
       height: MediaQuery.of(context).size.height,
@@ -69,22 +69,24 @@ Widget menuColumn(context, renderImg, _pickFiles) {
             //ui.Image img =
             loadImage(currImgIdx, context, renderImg);
           }, "Previous Image"),
-          //arrow_left_sharp, arrow_right (next image)
-          Padding(
-            padding: const EdgeInsets.only(top: 100.0),
-            child: Column(
-              children: [
-                iconButtonBlack(Icons.zoom_in_rounded, () {
-                  imgScale -= 0.1;
-                  renderImg(currImgIdx);
-                }, "Zoom In"),
-                iconButtonBlack(Icons.zoom_out_rounded, () {
-                  imgScale += 0.1;
-                  renderImg(currImgIdx);
-                }, "Zoom Out"),
-              ],
-            ),
-          ),
+          Divider(indent: 2, thickness: 2, height: 40),
+          iconButtonBlack(Icons.zoom_in_rounded, () {
+            imgScale -= 0.1;
+            renderImg(currImgIdx);
+          }, "Zoom In"),
+          iconButtonBlack(Icons.zoom_out_rounded, () {
+            imgScale += 0.1;
+            renderImg(currImgIdx);
+          }, "Zoom Out"),
+          Divider(indent: 2, thickness: 2, height: 40),
+          iconButtonBlack(Icons.delete, () {
+			//delete from server
+			deleteImage(files[currImgIdx]['name']); 
+			// delete from file list
+			remImg();
+			//currImgIdx++; ??
+            renderImg(currImgIdx);
+          }, "Delete Image"),
         ],
       ));
 }
@@ -107,34 +109,38 @@ Widget labelList(context, _scrollcontroller) {
   return Material(
     child: SizedBox(
         width: _labelsWidth,
-        height: MediaQuery.of(context).size.height*0.9,
+        height: MediaQuery.of(context).size.height * 0.9,
         child: Column(
           children: [
-              Text(
-                'Labels',
-                style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 25.0,
-                    fontWeight: FontWeight.bold),
-              ),
+            Text(
+              'Labels',
+              style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 25.0,
+                  fontWeight: FontWeight.bold),
+            ),
             Scrollbar(
-			  controller: _scrollcontroller,
-			  isAlwaysShown: true,
+              controller: _scrollcontroller,
+              isAlwaysShown: true,
               child: SizedBox(
                 width: _labelsWidth,
                 height: MediaQuery.of(context).size.height * .8,
                 child: ListView(
-				  controller: _scrollcontroller,
+                  controller: _scrollcontroller,
                   children: labelItems.keys
-                      .map((data) => Card( child:ListTile(
-						  hoverColor: Colors.limeAccent[100],
-						  selectedTileColor: Colors.limeAccent[400],
-						  leading: Icon(Icons.circle, size: 15, color: 
-							    (labelItems[data]%2==0)?Colors.green[400]:Colors.red[400]),
-                          title: Text(data),
-                          onTap: () {
-                            showOverlayKeypoint(context, labelItems[data]);
-                          })))
+                      .map((data) => Card(
+                          child: ListTile(
+                              hoverColor: Colors.limeAccent[100],
+                              selectedTileColor: Colors.limeAccent[400],
+                              leading: Icon(Icons.circle,
+                                  size: 15,
+                                  color: (labelItems[data] % 2 == 0)
+                                      ? Colors.green[400]
+                                      : Colors.red[400]),
+                              title: Text(data),
+                              onTap: () {
+                                showOverlayKeypoint(context, labelItems[data]);
+                              })))
                       .toList(),
                 ),
               ),
@@ -156,7 +162,7 @@ Widget imgList(context, _scrollcontroller, renderImg) {
         // color: Colors.deepOrange,
         child: files.isNotEmpty
             ? ListView.separated(
-				controller: _scrollcontroller,
+                controller: _scrollcontroller,
                 padding: EdgeInsets.all(2.0),
                 scrollDirection: Axis.vertical,
                 itemBuilder: (BuildContext context, int fidx) => Column(

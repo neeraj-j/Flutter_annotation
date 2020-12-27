@@ -100,13 +100,21 @@ Future<void> readCocoFile() async {
     coco = CocoFile.fromJson(jsonDecode(response.body));
     print("Json Read");
     indexCoco();
+    Fluttertoast.showToast(
+        msg: "Data loaded !!! ",
+        timeInSecForIosWeb: 3,
+        backgroundColor: Colors.greenAccent,
+        textColor: Colors.white,
+        gravity: ToastGravity.CENTER);
   } else {
     print('Failed to load coco file');
+    Fluttertoast.showToast(
+        msg: "Failed to load file !!! ",
+        backgroundColor: Colors.redAccent,
+        textColor: Colors.white,
+        timeInSecForIosWeb: 3,
+        gravity: ToastGravity.CENTER);
   }
-  Fluttertoast.showToast(
-      msg: "Data loaded !!! ",
-      timeInSecForIosWeb: 3,
-      gravity: ToastGravity.CENTER);
 }
 
 void indexCoco() {
@@ -121,11 +129,7 @@ void indexCoco() {
       imgToAnns[ann['image_id']] = [];
       imgToAnns[ann['image_id']].add(ann);
     }
-
-    //anns[ann['id']] = ann; not required
   }
-  //print(imgToAnns[ann['image_id']][0]['keypoints']);
-  // Image name to image id
   Map img;
   for (int i = 0; i < coco.images.length; i++) {
     img = coco.images[i];
@@ -134,23 +138,25 @@ void indexCoco() {
   print('Indexing complete');
 }
 
-Future<void> writeCocoFile() async{
-  if (!dirtyBit){return;}
+Future<void> writeCocoFile() async {
+  if (!dirtyBit) {
+    return;
+  }
   //print(dirtyBit);
   updateCoco();
   final http.Response response = await http.put(
     'http://192.168.1.100:9000/cocosave',
     headers: <String, String>{
-	 // "Accept": "application/json",
-	 // 'Access-Control-Allow-Origin': '*',
+      // "Accept": "application/json",
+      // 'Access-Control-Allow-Origin': '*',
       'Content-Type': 'application/json; charset=UTF-8',
     },
-	//body: jsonEncode(<String,String>{"a":"b"}),
-	body: jsonEncode(coco),
+    //body: jsonEncode(<String,String>{"a":"b"}),
+    body: jsonEncode(coco),
   );
   //final response =  await http.get('https://jsonplaceholder.typicode.com/albums/1');
   if (response.statusCode == 200) {
-	dirtyBit = false;
+    dirtyBit = false;
     Fluttertoast.showToast(
         msg: "Data Saved !!! ",
         timeInSecForIosWeb: 3,
@@ -194,9 +200,9 @@ void updateCoco() {
           print("Wrong top left point");
           return;
         }
-		print("Updating box $i");
-		top = top.scale(imgScale, imgScale);
-		bot = bot.scale(imgScale, imgScale);
+        print("Updating box $i");
+        top = top.scale(imgScale, imgScale);
+        bot = bot.scale(imgScale, imgScale);
         coco.annotations[j]["bbox"][0] = top.dx;
         coco.annotations[j]["bbox"][1] = top.dy;
         coco.annotations[j]["bbox"][2] = bot.dx - top.dx;
@@ -204,7 +210,7 @@ void updateCoco() {
       }
       // update keypooint if it is changed
       if (boxList[i]["changed"][1]) {
-		print("Updating Keypoints");
+        print("Updating Keypoints");
         for (var k = 0; k < 17; k++) {
           // skeleton is from 1-17 so subtract 1
           Offset kp1 = getKpCoords(i, k);
@@ -216,7 +222,7 @@ void updateCoco() {
             coco.annotations[j]['keypoints'][k * 3 + 2] = 0;
           } else {
             // keep visibility same
-			kp1 = kp1.scale(imgScale, imgScale);
+            kp1 = kp1.scale(imgScale, imgScale);
             coco.annotations[j]['keypoints'][k * 3] = kp1.dx.round();
             coco.annotations[j]['keypoints'][k * 3 + 1] = kp1.dy.round();
           }
@@ -225,5 +231,24 @@ void updateCoco() {
       // we have found the annid, no nneed to check rest annnids
       break;
     } // annotations for loop
+  }
+}
+
+// Delete image from server
+Future<void> deleteImage(String imName) async {
+  String url = 'http://192.168.1.100:9000/delete/' + imName;
+  final response = await http.delete(url);
+  //final response =  await http.get('https://jsonplaceholder.typicode.com/albums/1');
+  if (response.statusCode == 200) {
+    Fluttertoast.showToast(
+        msg: "Image Deleted !!! ",
+        timeInSecForIosWeb: 3,
+        gravity: ToastGravity.CENTER);
+  } else {
+    Fluttertoast.showToast(
+        msg: "Delete Failed!!! ",
+        timeInSecForIosWeb: 3,
+        gravity: ToastGravity.CENTER);
+    print('Failed to load coco file');
   }
 }
