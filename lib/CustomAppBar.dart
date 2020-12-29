@@ -37,13 +37,18 @@ class _CustomAppBarState extends State<CustomAppBar> {
     });
   }
 
+
   void _pickFiles() async {
     files = await getFileList();
     setState(() {});
   }
 
-  void _remImg() async {
-    files.removeAt(currImgIdx);
+  void _updateFiles(int idx) async {
+	if (idx == -1){ 
+		files.removeAt(currImgIdx);
+	}else{ // remove range
+	  files.removeRange(0, idx);
+	}
     setState(() {});
   }
 
@@ -62,7 +67,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                menuColumn(context, renderImg, _pickFiles, _remImg), // Icon columns
+                menuColumn(context, renderImg, _pickFiles, _updateFiles), // Icon columns
 				imgColumn(context, _currentImage),  // Main image window
 				labelList(context, _scrollcontroller), // Lables
 				imgList(context, _scrollcontroller, renderImg),

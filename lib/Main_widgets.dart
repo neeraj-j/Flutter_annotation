@@ -31,7 +31,7 @@ double _menuWidth = 50;
 double _labelsWidth = 180;
 double _imgListWidth = 160;
 
-Widget menuColumn(context, renderImg, _pickFiles, remImg) {
+Widget menuColumn(context, renderImg, _pickFiles, remImgs) {
   return SizedBox(
       width: _menuWidth,
       height: MediaQuery.of(context).size.height,
@@ -69,6 +69,8 @@ Widget menuColumn(context, renderImg, _pickFiles, remImg) {
             //ui.Image img =
             loadImage(currImgIdx, context, renderImg);
           }, "Previous Image"),
+          iconButtonBlue(Icons.call_missed_outgoing,
+              () => showForm(context, remImgs), "Goto Image"),
           Divider(indent: 2, thickness: 2, height: 40),
           iconButtonBlack(Icons.zoom_in_rounded, () {
             imgScale -= 0.1;
@@ -80,11 +82,11 @@ Widget menuColumn(context, renderImg, _pickFiles, remImg) {
           }, "Zoom Out"),
           Divider(indent: 2, thickness: 2, height: 40),
           iconButtonBlack(Icons.delete, () {
-			//delete from server
-			deleteImage(files[currImgIdx]['name']); 
-			// delete from file list
-			remImg();
-			//currImgIdx++; ??
+            //delete from server
+            deleteImage(files[currImgIdx]['name']);
+            // delete from file list
+            remImgs(-1);
+            //currImgIdx++; ??
             renderImg(currImgIdx);
           }, "Delete Image"),
         ],
@@ -100,6 +102,7 @@ Widget imgColumn(context, _currentImage) {
       children: [
         // Center image
         _currentImage,
+		fileName(_currentImage.imgIdx),
       ],
     ),
   );
@@ -229,4 +232,63 @@ BoxDecoration myBoxDecoration1() {
 
 Widget divider(height, thickness) {
   return Divider(indent: 1, thickness: 5);
+}
+
+final _formKey = GlobalKey<FormState>();
+
+void showForm(context, remImgs) {
+  showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content: Stack(
+            overflow: Overflow.visible,
+            children: <Widget>[
+              Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: TextFormField(onSaved: (String value) {
+                        if (value.isEmpty) {
+                          return;
+                        }
+                        //remote all images before this image
+                        List list = files.map((file) => file["name"]).toList();
+                        int idx = list.indexOf(value);
+                        print(idx);
+                        if (idx > 0) {
+                          remImgs(idx);
+                        }
+                      }),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: RaisedButton(
+                        child: Text("Submit"),
+                        onPressed: () {
+                          if (_formKey.currentState.validate()) {
+                            _formKey.currentState.save();
+                            Navigator.of(context).pop();
+                          }
+                        },
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      });
+}
+
+Widget fileName(int idx){
+	return SizedBox(height:20,
+		//child: Text(files[idx]['name'],
+		child: idx<0 ? Text("load file"): Text(files[idx]["name"],
+			textAlign: TextAlign.center,),
+		);
 }

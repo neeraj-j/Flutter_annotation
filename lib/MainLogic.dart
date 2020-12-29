@@ -115,6 +115,11 @@ import 'package:fluttertoast/fluttertoast.dart';
     }
     orgImgWidth = files[fidx]["width"];
     orgImgHeight = files[fidx]["height"];
+	if (orgImgHeight==0 || orgImgWidth ==0){
+	  Fluttertoast.showToast(msg: "Load Image",
+		  timeInSecForIosWeb: 5,);
+		return;	
+	}
     // scale is opposite greater means smaller
     double wScale = orgImgWidth / _maxWidth;
     double hScale = orgImgHeight / _maxHeight;
@@ -141,6 +146,9 @@ import 'package:fluttertoast/fluttertoast.dart';
     int imid = images[fName]['id'];
     int _w = images[fName]['width'];
     int _h = images[fName]['height'];
+	print("$_w, $_h");
+	// check if annotations exists
+	if (!imgToAnns.containsKey(imid)){return;}
     // process anns for the image
     for (int i = 0; i < imgToAnns[imid].length; i++) {
       List<dynamic> bbox = imgToAnns[imid][i]['bbox'];
@@ -152,9 +160,9 @@ import 'package:fluttertoast/fluttertoast.dart';
           bbox[0] + bbox[2], bbox[1] + bbox[3]); //.scale(imgScale, imgScale);
       // Alignment is scale agnostic
       Alignment tAlign =
-          Alignment((tOff.dx - _w / 2) * 2 / _w, (tOff.dy - _h / 2) * 2 / _h);
+          Alignment((tOff.dx - (_w / 2)) * 2 / _w, (tOff.dy - (_h / 2)) * 2 / _h);
       Alignment bAlign =
-          Alignment((bOff.dx - _w / 2) * 2 / _w, (bOff.dy - _h / 2) * 2 / _h);
+          Alignment((bOff.dx - (_w / 2)) * 2 / _w, (bOff.dy - (_h / 2)) * 2 / _h);
       showOverlayBox(lcontext, tAlign: tAlign, bAlign: bAlign, annId:annId);
 
       // Draw Keypooints
@@ -164,8 +172,9 @@ import 'package:fluttertoast/fluttertoast.dart';
         int v = kps[i + 2];
         // vaid keypoints
         if (v != 0) {
+		  //print("$x, $y");
           Alignment align =
-              Alignment((x - _w / 2) * 2 / _w, (y - _h / 2) * 2 / _h);
+              Alignment((x - (_w / 2)) * 2 / _w, (y - (_h / 2)) * 2 / _h);
           showOverlayKeypoint(lcontext, (i / 3).round(), align: align);
         }
       }
