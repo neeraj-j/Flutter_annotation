@@ -2,8 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'Globals.dart';
-import 'dart:convert';
 import 'dart:typed_data';
+import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:fluttertoast/fluttertoast.dart';
 
@@ -112,7 +112,6 @@ class DrawSkeleton extends CustomPainter {
       ..color = Colors.yellow
       ..strokeWidth = 2
       ..strokeCap = StrokeCap.round;
-
     if (boxIdx == -1) {
       print("Error: -ve");
       return;
@@ -125,6 +124,7 @@ class DrawSkeleton extends CustomPainter {
       if (kp1 == null || kp2 == null) {
         continue;
       }
+	  //if (i==13){print(kp1*imgScale);}
       canvas.drawLine(kp1, kp2, paint);
     }
   }
@@ -149,7 +149,6 @@ class DrawRect extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2
       ..strokeCap = StrokeCap.round;
-
     // entry is nt yet added to boxlist
     //print(clr);
     if (boxList.length == boxIdx) {
@@ -201,10 +200,9 @@ Widget iconButtonBlack(IconData name, Function f, String msg) {
   );
 }
 
-
 // get the list of file names 
 Future<List> getFileList() async {
-  final response =  await http.get('http://192.168.1.100:9000/images');
+  final response =  await http.get('http://192.168.1.3:9000/images');
   if (response.statusCode == 200) {
     //print( jsonDecode(response.body));
     return jsonDecode(response.body);
@@ -219,7 +217,7 @@ Future<List> getFileList() async {
 // get image by name 
 Future<Uint8List> getImage(int idx) async {
   if (idx<0){return null;}
-  String url ='http://192.168.1.100:9000/images/'+files[idx]['name'] ;
+  String url ='http://192.168.1.3:9000/images/'+files[idx]['name'] ;
   Map<String, String> requestHeaders = {
        'Accept': 'application/json; charset=utf-8',
      };
@@ -238,6 +236,8 @@ Future<Uint8List> getImage(int idx) async {
   //  new Image.memory(bytes),
   return bytes;
 }
+
+
 
 
 

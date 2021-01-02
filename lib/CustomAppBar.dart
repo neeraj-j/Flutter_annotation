@@ -52,7 +52,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
     setState(() {});
   }
 
-  final ScrollController _scrollcontroller = ScrollController();
+  final ScrollController lblscroller = ScrollController();
 
   @override
   Widget build(BuildContext context) {
@@ -69,8 +69,8 @@ class _CustomAppBarState extends State<CustomAppBar> {
               children: <Widget>[
                 menuColumn(context, renderImg, _pickFiles, _updateFiles), // Icon columns
 				imgColumn(context, _currentImage),  // Main image window
-				labelList(context, _scrollcontroller), // Lables
-				imgList(context, _scrollcontroller, renderImg),
+				labelList(context, lblscroller), // Lables
+				imgList(context, renderImg),
               ],
             ),
           ),

@@ -61,7 +61,7 @@ class _ImgContainerState extends State<ImgContainer> {
   Widget build(BuildContext context) {
     myContext = context;
     return SizedBox(
-      key: imgKey,
+	  key: imgKey,
       width: widget.winWidth,
       height: widget.winHeight,
       // No gesture detector for image
@@ -110,6 +110,7 @@ class OverlayKP extends StatefulWidget {
 }
 
 class _OverlayKPState extends State<OverlayKP> {
+  //Alignment _dragAlignment;
   Alignment _dragAlignment;
   @override
   void initState() {
@@ -135,6 +136,7 @@ class _OverlayKPState extends State<OverlayKP> {
         //behavior: HitTestBehavior.deferToChild,
         onPanUpdate: (details) {
           setState(() {
+			
             double dx = details.delta.dx / (overlayPos.width / 2);
             double dy = details.delta.dy / (overlayPos.height / 2);
             _dragAlignment += Alignment(dx, dy);
@@ -159,11 +161,12 @@ class _OverlayKPState extends State<OverlayKP> {
           foregroundPainter: DrawSkeleton(widget.boxIdx),
           willChange: true,
           child: Align(
-              alignment: _dragAlignment,
+              //alignment: _dragAlignment,
+			  alignment:_dragAlignment,
               child: Tooltip(
                 message: labelText[widget.kpIdx],
                 child: Icon(Icons.circle,
-                    key: widget.iconKey, size: 15, color: clr),
+                    key: widget.iconKey, size: kpIconSize, color: clr),
               )),
         ),
       ) //Gesture
@@ -207,7 +210,6 @@ class _OverlayBoxState extends State<OverlayBox> {
   @override
   Widget build(BuildContext context) {
     Rect overlayPos = getPosition(imgKey);
-
     return CustomSingleChildLayout(
       delegate: _OverlayableContainerLayout(overlayPos),
       child: Container(
@@ -266,7 +268,7 @@ class _OverlayBoxState extends State<OverlayBox> {
               child: Tooltip(
                 message: boxText[widget.ptIdx],
                 child: Icon(Icons.circle,
-                    key: widget.iconKey, size: 20, color: clr),
+                    key: widget.iconKey, size: bbIconSize, color: clr),
               )),
         ),
       ) //Gesture

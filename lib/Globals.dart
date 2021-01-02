@@ -19,6 +19,12 @@ double orgImgHeight;
 int currImgIdx=0;
 
 bool dirtyBit= false; // if annotation has changed
+int currBoxIdx = -1; // idx of selected box
+// to maintain overlay entries
+List<Map> boxList = [];
+
+double bbIconSize = 10; // icon size of box
+double kpIconSize = 15; // icon size of keypoint
 
 // Skeleton
 List<List<int>> skeleton = [
@@ -54,8 +60,5 @@ var overlayMap = {
   // Todo: add segmentation also
 };
 *****/
-int currBoxIdx = -1;
-// to maintain overlay entries
-List<Map> boxList = [];
 
 

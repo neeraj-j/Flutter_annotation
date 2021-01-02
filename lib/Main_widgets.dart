@@ -6,6 +6,7 @@ import 'Globals.dart';
 import 'Coco.dart';
 import 'MainLogic.dart';
 import 'dart:typed_data';
+import 'package:fluttertoast/fluttertoast.dart';
 
 var labelItems = {
   "Nose": 0,
@@ -42,8 +43,8 @@ Widget menuColumn(context, renderImg, _pickFiles, remImgs) {
           iconButtonBlue(Icons.folder_open, () {
             _pickFiles();
           }, "Open Images"),
-          iconButtonBlue(Icons.upload_file,
-              coco != null ? null : () => {readCocoFile()}, "Load Coco File"),
+          iconButtonBlue(Icons.download_outlined,
+              !coco.isEmpty ? null : () => {readCocoFile()}, "Load Coco File"),
           iconButtonBlue(Icons.save, () => {writeCocoFile()}, "Save Coco file"),
           Divider(indent: 1, thickness: 2, height: 2),
           iconButtonBlue(Icons.crop_square_outlined,
@@ -55,6 +56,9 @@ Widget menuColumn(context, renderImg, _pickFiles, remImgs) {
               currImgIdx++;
             } else {
               print("Last file");
+			  Fluttertoast.showToast(msg: "Last File",
+					timeInSecForIosWeb: 5,
+					gravity: ToastGravity.CENTER);
             }
 
             //ui.Image img =
@@ -65,6 +69,9 @@ Widget menuColumn(context, renderImg, _pickFiles, remImgs) {
               currImgIdx--;
             } else {
               print("First file");
+			  Fluttertoast.showToast(msg: "First File",
+					timeInSecForIosWeb: 5,
+					gravity: ToastGravity.CENTER);
             }
             //ui.Image img =
             loadImage(currImgIdx, context, renderImg);
@@ -72,22 +79,22 @@ Widget menuColumn(context, renderImg, _pickFiles, remImgs) {
           iconButtonBlue(Icons.call_missed_outgoing,
               () => showForm(context, remImgs), "Goto Image"),
           Divider(indent: 2, thickness: 2, height: 40),
+		  /*
           iconButtonBlack(Icons.zoom_in_rounded, () {
             imgScale -= 0.1;
             renderImg(currImgIdx);
-          }, "Zoom In"),
+          } , "Zoom In"),
           iconButtonBlack(Icons.zoom_out_rounded, () {
             imgScale += 0.1;
             renderImg(currImgIdx);
-          }, "Zoom Out"),
+          }, "Zoom Out"), */
           Divider(indent: 2, thickness: 2, height: 40),
           iconButtonBlack(Icons.delete, () {
             //delete from server
             deleteImage(files[currImgIdx]['name']);
             // delete from file list
             remImgs(-1);
-            //currImgIdx++; ??
-            renderImg(currImgIdx);
+            loadImage(currImgIdx, context, renderImg);
           }, "Delete Image"),
         ],
       ));
@@ -153,11 +160,11 @@ Widget labelList(context, _scrollcontroller) {
   );
 }
 
-Widget imgList(context, _scrollcontroller, renderImg) {
+Widget imgList(context, renderImg) {
   return Scrollbar(
-    // Giving error
-    controller: _scrollcontroller,
-    isAlwaysShown: true,
+	  // scroller is giving error
+    //controller: _scrollcontroller,
+    //isAlwaysShown: true,
     child: SizedBox(
       width: _imgListWidth,
       height: MediaQuery.of(context).size.height * 0.9,
@@ -165,7 +172,7 @@ Widget imgList(context, _scrollcontroller, renderImg) {
         // color: Colors.deepOrange,
         child: files.isNotEmpty
             ? ListView.separated(
-                controller: _scrollcontroller,
+     //           controller: _scrollcontroller,
                 padding: EdgeInsets.all(2.0),
                 scrollDirection: Axis.vertical,
                 itemBuilder: (BuildContext context, int fidx) => Column(
@@ -258,7 +265,6 @@ void showForm(context, remImgs) {
                         //remote all images before this image
                         List list = files.map((file) => file["name"]).toList();
                         int idx = list.indexOf(value);
-                        print(idx);
                         if (idx > 0) {
                           remImgs(idx);
                         }

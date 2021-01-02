@@ -68,7 +68,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 
   // Implements Keypoint overlays
   void showOverlayKeypoint(BuildContext context, int kpIdx,
-      {align: Alignment.center}) async {
+      {align: Alignment.topLeft}) async {
     if (currBoxIdx == -1) {
 	  Fluttertoast.showToast(msg: "Error: No Box Selected ",
 		  timeInSecForIosWeb: 5,
@@ -100,7 +100,8 @@ import 'package:fluttertoast/fluttertoast.dart';
     overlayState.insert(
       _overlayItem,
     );
-  }
+  //print(getAbsPosition(icKey).center);
+}
 
   // Load new image and annnotations
   // click on image list and next button
@@ -130,52 +131,63 @@ import 'package:fluttertoast/fluttertoast.dart';
     // display image
     renderImg(fidx);
     // Display annotaiton overlays
+	//print("$orgImgWidth, $orgImgHeight, $_maxWidth, $_maxHeight");
+	print("Imscale: $imgScale");
     loadAnns(context, fidx);
     currImgIdx = fidx;
   }
 
   // Load annotation from coco file
   void loadAnns(BuildContext lcontext, int fidx) {
-    if (images.isEmpty) {
-      return;
-    }
+	if (coco.isEmpty){return;}
     String fName = files[fidx]['name'];
-    if (!images.containsKey(fName)) {
-      return;
-    }
-    int imid = images[fName]['id'];
-    int _w = images[fName]['width'];
-    int _h = images[fName]['height'];
-	print("$_w, $_h");
+
+	List<dynamic> annotations=[];
+    double _w=0 ;
+    double _h=0 ;
+	double kpSize = kpIconSize*imgScale; // for kp icon of 15
+	double bbSize = bbIconSize*imgScale; // for box icon of 10
+
+	for(int i=0; i<coco.length; i++){
+		if (coco[i]['file_name'] == fName){
+			_w = coco[i]['width'];
+			_h = coco[i]['height'];
+			annotations = coco[i]['annotations'];
+			cocoImgIdx = i;
+			break;
+		}
+	}
+	if (_w==0 || _h==0){return;}
 	// check if annotations exists
-	if (!imgToAnns.containsKey(imid)){return;}
+	if (annotations.isEmpty){return;}
     // process anns for the image
-    for (int i = 0; i < imgToAnns[imid].length; i++) {
-      List<dynamic> bbox = imgToAnns[imid][i]['bbox'];
-      List<dynamic> kps = imgToAnns[imid][i]['keypoints'];
-	  int annId = imgToAnns[imid][i]['id'];
+    for (int i = 0; i < annotations.length; i++) {
+      List<dynamic> bbox = annotations[i]['bbox'];
+      List<dynamic> kps = annotations[i]['keypoints'];
+	  int annId = annotations[i]['id'];
+	  //print("$bbox");
       // Draw bbox
       Offset tOff = Offset(bbox[0], bbox[1]); //.scale(imgScale, imgScale);
       Offset bOff = Offset(
           bbox[0] + bbox[2], bbox[1] + bbox[3]); //.scale(imgScale, imgScale);
       // Alignment is scale agnostic
       Alignment tAlign =
-          Alignment((tOff.dx - (_w / 2)) * 2 / _w, (tOff.dy - (_h / 2)) * 2 / _h);
+          Alignment((tOff.dx - (_w / 2)) * 2 / (_w-bbSize), (tOff.dy - (_h / 2)) * 2 / (_h-bbSize));
       Alignment bAlign =
-          Alignment((bOff.dx - (_w / 2)) * 2 / _w, (bOff.dy - (_h / 2)) * 2 / _h);
+          Alignment((bOff.dx - (_w / 2)) * 2 / (_w-bbSize), (bOff.dy - (_h / 2)) * 2 / (_h-bbSize));
       showOverlayBox(lcontext, tAlign: tAlign, bAlign: bAlign, annId:annId);
 
       // Draw Keypooints
-      for (int i = 0; i < kps.length; i += 3) {
-        int x = kps[i];
-        int y = kps[i + 1];
-        int v = kps[i + 2];
+      for (int i = 0; i < kps.length; i++) {
+        double x = kps[i][0];
+        double y = kps[i][1];
+		//print("$x,$y");
         // vaid keypoints
-        if (v != 0) {
-		  //print("$x, $y");
+        if (x != 0 && y !=0) {
+		  // compensate for icon size size 15 = 19.8 pixels
           Alignment align =
-              Alignment((x - (_w / 2)) * 2 / _w, (y - (_h / 2)) * 2 / _h);
-          showOverlayKeypoint(lcontext, (i / 3).round(), align: align);
+              Alignment((x - (_w / 2)) * 2 / (_w-kpSize), (y - (_h / 2)) * 2 / (_h-kpSize));
+          showOverlayKeypoint(lcontext, i, align: align);
         }
       }
     }
@@ -266,11 +278,10 @@ import 'package:fluttertoast/fluttertoast.dart';
             TextButton(
               child: Text('Accept'),
               onPressed: () {
-                dirtyBit = false;
-				// Todo: save changes
+                Navigator.of(context,rootNavigator: true).pop();
 				writeCocoFile();
+                dirtyBit = false; /// Its redundent but alertbox will not dissapear
                 loadImage(index, context, renderImg);
-                Navigator.of(context).pop();
               },
             ),
             TextButton(
