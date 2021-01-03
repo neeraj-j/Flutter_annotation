@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:fluttertoast/fluttertoast.dart';
 import "Globals.dart";
+import 'dart:typed_data';
 import "Common.dart";
 
 // Coco file strcture for decoding
@@ -70,33 +70,26 @@ var _cocoAnnotation = {
 };
 
 // fetch coco file from server
-Future<void> readCocoFile() async {
-  Fluttertoast.showToast(
-      msg: "Waiting for Data to load ",
-      timeInSecForIosWeb: 5,
-      gravity: ToastGravity.CENTER);
-  final response = await http.get('http://192.168.1.3:9000/coco');
+Future<void> readCocoFile(Function() pickfiles) async {
+  if (coco.isNotEmpty){return;}
+  if (workerId <0) {
+	toast("Please Enter File Id");
+	return;
+  }
+  toast( "Waiting for Data to load ");
+  final response = await http.get('http://192.168.1.3:9000/coco/$workerId');
   //final response =  await http.get('https://jsonplaceholder.typicode.com/albums/1');
   if (response.statusCode == 200) {
 	// for coco
     //coco = CocoFile.fromJson(jsonDecode(response.body));
     coco = jsonDecode(response.body);
     print(jsonDecode(response.body).runtimeType);
+	pickfiles();
    // indexCoco();
-    Fluttertoast.showToast(
-        msg: "Data loaded !!! ",
-        timeInSecForIosWeb: 3,
-        backgroundColor: Colors.greenAccent,
-        textColor: Colors.white,
-        gravity: ToastGravity.CENTER);
+    toast( "Data loaded !!! ");
   } else {
     print('Failed to load coco file');
-    Fluttertoast.showToast(
-        msg: "Failed to load file !!! ",
-        backgroundColor: Colors.redAccent,
-        textColor: Colors.white,
-        timeInSecForIosWeb: 3,
-        gravity: ToastGravity.CENTER);
+    toast("Error:Failed to load file !!!");
   }
 }
 
@@ -104,9 +97,10 @@ Future<void> writeCocoFile() async {
   if (!dirtyBit) {
     return;
   }
+  dirtyBit = false;
   updateCoco();
   final http.Response response = await http.put(
-    'http://192.168.1.3:9000/cocosave',
+    'http://192.168.1.3:9000/cocosave/$workerId',
     headers: <String, String>{
       // "Accept": "application/json",
       // 'Access-Control-Allow-Origin': '*',
@@ -117,20 +111,9 @@ Future<void> writeCocoFile() async {
   );
   //final response =  await http.get('https://jsonplaceholder.typicode.com/albums/1');
   if (response.statusCode == 200) {
-    dirtyBit = false;
-    Fluttertoast.showToast(
-        msg: "Data Saved !!! ",
-        timeInSecForIosWeb: 3,
-        backgroundColor: Colors.greenAccent,
-        textColor: Colors.white,
-        gravity: ToastGravity.CENTER);
+    toast("Data Saved !!! ");
   } else {
-    Fluttertoast.showToast(
-        msg: "Error: Failed to save Data",
-        timeInSecForIosWeb: 3,
-        backgroundColor: Colors.redAccent,
-        textColor: Colors.white,
-        gravity: ToastGravity.CENTER);
+    toast("Error: Failed to save Data");
   }
 }
 
@@ -163,7 +146,7 @@ void updateCoco() {
           print("Wrong top left point");
           return;
         }
-        print("Updating box $i");
+        //print("Updating box $i");
         top = top.scale(imgScale, imgScale);
         bot = bot.scale(imgScale, imgScale);
         coco[cocoImgIdx]['annotations'][j]["bbox"][0] = top.dx;
@@ -173,7 +156,7 @@ void updateCoco() {
       }
       // update keypooint if it is changed
       if (boxList[i]["changed"][1]) {
-        print("Updating Keypoints");
+        //print("Updating Keypoints");
         for (var k = 0; k < 17; k++) {
           // skeleton is from 1-17 so subtract 1
           Offset kp1 = getKpCoords(i, k);
@@ -198,22 +181,66 @@ void updateCoco() {
 }
 
 
-// Delete image from server
+// Delete image from server and coco list
 Future<void> deleteImage(String imName) async {
+  // delte from coco list
+  coco.removeAt(cocoImgIdx);
   String url = 'http://192.168.1.3:9000/delete/' + imName;
   final response = await http.delete(url);
   //final response =  await http.get('https://jsonplaceholder.typicode.com/albums/1');
   if (response.statusCode == 200) {
-    Fluttertoast.showToast(
-        msg: "Image Deleted !!! ",
-        timeInSecForIosWeb: 3,
-        gravity: ToastGravity.CENTER);
+    toast("Image Deleted !!! ");
   } else {
-    Fluttertoast.showToast(
-        msg: "Delete Failed!!! ",
-        timeInSecForIosWeb: 3,
-        gravity: ToastGravity.CENTER);
-    print('Failed to load coco file');
+    toast("Error: Delete Failed!!! ");
   }
 }
+
+// get the list of file names 
+Future<List> getFileList() async {
+  if (coco.isEmpty){return [];} // Todo display msg
+  List<dynamic> flist =[];
+  for (int i=0; i<coco.length; i++){
+	Map fmap = {};
+	fmap['name'] = coco[i]['file_name'];
+	fmap['width'] = coco[i]['width'];
+	fmap['height'] = coco[i]['height'];
+	fmap['cocoIdx'] = i;
+	flist.add(fmap);
+  }
+  return flist;
+  /*
+  final response =  await http.get('http://192.168.1.3:9000/images');
+  if (response.statusCode == 200) {
+    //print( jsonDecode(response.body));
+    return jsonDecode(response.body);
+  } else {
+	Fluttertoast.showToast(msg: "Failed to get file Names",
+		  timeInSecForIosWeb: 5,
+		  gravity: ToastGravity.TOP);
+  }
+  return [];
+  */
+}
+
+// get image by name 
+Future<Uint8List> getImage(int idx) async {
+  if (idx<0){return null;}
+  String url ='http://192.168.1.3:9000/images/'+files[idx]['name'] ;
+  Map<String, String> requestHeaders = {
+       'Accept': 'application/json; charset=utf-8',
+     };
+  final response =  await http.get(url, headers: requestHeaders);
+  Uint8List bytes;
+  if (response.statusCode == 200) {
+    files[idx]["width"] = jsonDecode(response.body)["width"];
+    files[idx]["height"] = jsonDecode(response.body)["height"];
+    var _base64 =  jsonDecode(response.body)["image"];
+	bytes = base64.decode(_base64);
+  } else {
+	toast("Error: Failed to get file Names");
+  }
+  //  new Image.memory(bytes),
+  return bytes;
+}
+
 

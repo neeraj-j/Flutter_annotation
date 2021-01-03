@@ -2,10 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'Globals.dart';
-import 'dart:typed_data';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:fluttertoast/fluttertoast.dart';
 
 // Remove overlay keypoint entry
 void removeOverlayKpEntry(int boxIdx, int kpIdx) {
@@ -199,45 +195,6 @@ Widget iconButtonBlack(IconData name, Function f, String msg) {
     ),
   );
 }
-
-// get the list of file names 
-Future<List> getFileList() async {
-  final response =  await http.get('http://192.168.1.3:9000/images');
-  if (response.statusCode == 200) {
-    //print( jsonDecode(response.body));
-    return jsonDecode(response.body);
-  } else {
-	Fluttertoast.showToast(msg: "Failed to get file Names",
-		  timeInSecForIosWeb: 5,
-		  gravity: ToastGravity.TOP);
-  }
-  return [];
-}
-
-// get image by name 
-Future<Uint8List> getImage(int idx) async {
-  if (idx<0){return null;}
-  String url ='http://192.168.1.3:9000/images/'+files[idx]['name'] ;
-  Map<String, String> requestHeaders = {
-       'Accept': 'application/json; charset=utf-8',
-     };
-  final response =  await http.get(url, headers: requestHeaders);
-  Uint8List bytes;
-  if (response.statusCode == 200) {
-    files[idx]["width"] = jsonDecode(response.body)["width"];
-    files[idx]["height"] = jsonDecode(response.body)["height"];
-    var _base64 =  jsonDecode(response.body)["image"];
-	bytes = base64.decode(_base64);
-  } else {
-	Fluttertoast.showToast(msg: "Failed to get file Names",
-		  timeInSecForIosWeb: 5,
-		  gravity: ToastGravity.TOP);
-  }
-  //  new Image.memory(bytes),
-  return bytes;
-}
-
-
 
 
 

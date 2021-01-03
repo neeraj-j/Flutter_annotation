@@ -5,7 +5,6 @@ import 'overlay.dart';
 import 'Common.dart';
 import 'Globals.dart';
 import 'Coco.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 
 
 
@@ -70,9 +69,7 @@ import 'package:fluttertoast/fluttertoast.dart';
   void showOverlayKeypoint(BuildContext context, int kpIdx,
       {align: Alignment.topLeft}) async {
     if (currBoxIdx == -1) {
-	  Fluttertoast.showToast(msg: "Error: No Box Selected ",
-		  timeInSecForIosWeb: 5,
-		  gravity: ToastGravity.CENTER);
+	  toast("Error: No Box Selected ");
       return;
     }
     if (boxList[currBoxIdx]["kpOvrls"][kpIdx] != null) {
@@ -117,8 +114,7 @@ import 'package:fluttertoast/fluttertoast.dart';
     orgImgWidth = files[fidx]["width"];
     orgImgHeight = files[fidx]["height"];
 	if (orgImgHeight==0 || orgImgWidth ==0){
-	  Fluttertoast.showToast(msg: "Load Image",
-		  timeInSecForIosWeb: 5,);
+	  toast("Load Image");
 		return;	
 	}
     // scale is opposite greater means smaller
@@ -132,7 +128,7 @@ import 'package:fluttertoast/fluttertoast.dart';
     renderImg(fidx);
     // Display annotaiton overlays
 	//print("$orgImgWidth, $orgImgHeight, $_maxWidth, $_maxHeight");
-	print("Imscale: $imgScale");
+	//print("Imscale: $imgScale");
     loadAnns(context, fidx);
     currImgIdx = fidx;
   }

@@ -6,7 +6,6 @@ import 'Globals.dart';
 import 'Coco.dart';
 import 'MainLogic.dart';
 import 'dart:typed_data';
-import 'package:fluttertoast/fluttertoast.dart';
 
 var labelItems = {
   "Nose": 0,
@@ -40,12 +39,15 @@ Widget menuColumn(context, renderImg, _pickFiles, remImgs) {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
+          iconButtonBlue(Icons.filter_1,
+              () => {workerForm(context)}, 
+			  "File Id"),
           iconButtonBlue(Icons.folder_open, () {
-            _pickFiles();
-          }, "Open Images"),
-          iconButtonBlue(Icons.download_outlined,
-              !coco.isEmpty ? null : () => {readCocoFile()}, "Load Coco File"),
-          iconButtonBlue(Icons.save, () => {writeCocoFile()}, "Save Coco file"),
+				readCocoFile(_pickFiles);
+          }, "Load Data"),
+          //iconButtonBlue(Icons.download_outlined,
+          //    !coco.isEmpty ? null : () => {readCocoFile(_pickFiles)}, "Load Coco File"),
+          iconButtonBlue(Icons.save, () => {writeCocoFile()}, "Save Image"),
           Divider(indent: 1, thickness: 2, height: 2),
           iconButtonBlue(Icons.crop_square_outlined,
               () => {showOverlayBox(context)}, "Insert Bounding Box"),
@@ -56,9 +58,7 @@ Widget menuColumn(context, renderImg, _pickFiles, remImgs) {
               currImgIdx++;
             } else {
               print("Last file");
-			  Fluttertoast.showToast(msg: "Last File",
-					timeInSecForIosWeb: 5,
-					gravity: ToastGravity.CENTER);
+			  toast("Last File");
             }
 
             //ui.Image img =
@@ -69,15 +69,13 @@ Widget menuColumn(context, renderImg, _pickFiles, remImgs) {
               currImgIdx--;
             } else {
               print("First file");
-			  Fluttertoast.showToast(msg: "First File",
-					timeInSecForIosWeb: 5,
-					gravity: ToastGravity.CENTER);
+			  toast("First File");
             }
             //ui.Image img =
             loadImage(currImgIdx, context, renderImg);
           }, "Previous Image"),
           iconButtonBlue(Icons.call_missed_outgoing,
-              () => showForm(context, remImgs), "Goto Image"),
+              () => gotoForm(context, remImgs), "Goto Image"),
           Divider(indent: 2, thickness: 2, height: 40),
 		  /*
           iconButtonBlack(Icons.zoom_in_rounded, () {
@@ -90,11 +88,12 @@ Widget menuColumn(context, renderImg, _pickFiles, remImgs) {
           }, "Zoom Out"), */
           Divider(indent: 2, thickness: 2, height: 40),
           iconButtonBlack(Icons.delete, () {
-            //delete from server
+            //delete from server and coco list
             deleteImage(files[currImgIdx]['name']);
             // delete from file list
             remImgs(-1);
             loadImage(currImgIdx, context, renderImg);
+			dirtyBit = true;
           }, "Delete Image"),
         ],
       ));
@@ -243,7 +242,8 @@ Widget divider(height, thickness) {
 
 final _formKey = GlobalKey<FormState>();
 
-void showForm(context, remImgs) {
+// Goto file name
+void gotoForm(context, remImgs) {
   showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -258,16 +258,73 @@ void showForm(context, remImgs) {
                   children: <Widget>[
                     Padding(
                       padding: EdgeInsets.all(8.0),
-                      child: TextFormField(onSaved: (String value) {
+                      child: TextFormField(
+						  decoration: InputDecoration(
+							labelText: "Goto File (xxxx_xxxxxx.jpg):", 
+						 ),
+						  onSaved: (String value) {
                         if (value.isEmpty) {
                           return;
                         }
                         //remote all images before this image
+						// make list of filenames and find the index
                         List list = files.map((file) => file["name"]).toList();
                         int idx = list.indexOf(value);
                         if (idx > 0) {
                           remImgs(idx);
                         }
+                      }),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: RaisedButton(
+                        child: Text("Submit"),
+                        onPressed: () {
+                          if (_formKey.currentState.validate()) {
+                            _formKey.currentState.save();
+                            Navigator.of(context).pop();
+                          }
+                        },
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      });
+}
+
+void workerForm(context) {
+  showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content: Stack(
+            overflow: Overflow.visible,
+            children: <Widget>[
+              Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: TextFormField(
+						  decoration: InputDecoration(
+							labelText: "Enter File Id (0-6):", 
+						 ),
+						  onSaved: (String value) {
+                        if (value.isEmpty) {
+                          return;
+                        }
+						int val = int.parse(value);
+						if (val<0 || val >6){
+						  toast("Error: Invalid File ID");
+						  return;
+						}
+						workerId = val;
                       }),
                     ),
                     Padding(

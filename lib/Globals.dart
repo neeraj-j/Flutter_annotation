@@ -1,6 +1,7 @@
 // Globals variabls used in this project
 
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 final GlobalKey imgKey = GlobalKey();  // sizedBox key
 final GlobalKey imgColKey = GlobalKey(); // Image parentbox key
@@ -26,6 +27,8 @@ List<Map> boxList = [];
 double bbIconSize = 10; // icon size of box
 double kpIconSize = 15; // icon size of keypoint
 
+int workerId = -1;  // used fro getting the coco file
+
 // Skeleton
 List<List<int>> skeleton = [
   [16, 14],
@@ -48,6 +51,13 @@ List<List<int>> skeleton = [
   [4, 6],
   [5, 7]
 ];
+
+void toast(mesg){
+	Fluttertoast.showToast(
+      msg: mesg,
+      timeInSecForIosWeb: 5,
+      gravity: ToastGravity.CENTER);
+}
 
 // annotation (kp and bbox ) globals
 /***

@@ -2,8 +2,8 @@
 import 'package:flutter/material.dart';
 import 'Common.dart';
 import 'Globals.dart';
-import 'dart:io';
 import 'dart:typed_data';
+import 'Coco.dart';
 // Implements overlay class for dots
 // This key is used for image widget
 
