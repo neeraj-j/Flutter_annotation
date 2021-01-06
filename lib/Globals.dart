@@ -24,10 +24,10 @@ int currBoxIdx = -1; // idx of selected box
 // to maintain overlay entries
 List<Map> boxList = [];
 
-double bbIconSize = 10; // icon size of box
+double bbIconSize = 15; // icon size of box
 double kpIconSize = 15; // icon size of keypoint
 
-int workerId = -1;  // used fro getting the coco file
+int workerId = 1;  // used fro getting the coco file
 
 // Skeleton
 List<List<int>> skeleton = [

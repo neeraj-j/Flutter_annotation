@@ -113,10 +113,7 @@ import 'Coco.dart';
     }
     orgImgWidth = files[fidx]["width"];
     orgImgHeight = files[fidx]["height"];
-	if (orgImgHeight==0 || orgImgWidth ==0){
-	  toast("Load Image");
-		return;	
-	}
+
     // scale is opposite greater means smaller
     double wScale = orgImgWidth / _maxWidth;
     double hScale = orgImgHeight / _maxHeight;
@@ -135,25 +132,15 @@ import 'Coco.dart';
 
   // Load annotation from coco file
   void loadAnns(BuildContext lcontext, int fidx) {
-	if (coco.isEmpty){return;}
     String fName = files[fidx]['name'];
 
 	List<dynamic> annotations=[];
-    double _w=0 ;
-    double _h=0 ;
+    double _w=files[fidx]['width'] ;
+    double _h=files[fidx]['height'] ;
 	double kpSize = kpIconSize*imgScale; // for kp icon of 15
 	double bbSize = bbIconSize*imgScale; // for box icon of 10
 
-	for(int i=0; i<coco.length; i++){
-		if (coco[i]['file_name'] == fName){
-			_w = coco[i]['width'];
-			_h = coco[i]['height'];
-			annotations = coco[i]['annotations'];
-			cocoImgIdx = i;
-			break;
-		}
-	}
-	if (_w==0 || _h==0){return;}
+    annotations = files[fidx]['annotations'];
 	// check if annotations exists
 	if (annotations.isEmpty){return;}
     // process anns for the image
@@ -174,16 +161,16 @@ import 'Coco.dart';
       showOverlayBox(lcontext, tAlign: tAlign, bAlign: bAlign, annId:annId);
 
       // Draw Keypooints
-      for (int i = 0; i < kps.length; i++) {
-        double x = kps[i][0];
-        double y = kps[i][1];
+      for (int i = 0; i < kps.length; i+=3) {
+        double x = kps[i];
+        double y = kps[i+1];
 		//print("$x,$y");
         // vaid keypoints
         if (x != 0 && y !=0) {
 		  // compensate for icon size size 15 = 19.8 pixels
           Alignment align =
               Alignment((x - (_w / 2)) * 2 / (_w-kpSize), (y - (_h / 2)) * 2 / (_h-kpSize));
-          showOverlayKeypoint(lcontext, i, align: align);
+          showOverlayKeypoint(lcontext, (i~/3), align: align);
         }
       }
     }
@@ -191,68 +178,6 @@ import 'Coco.dart';
     currBoxIdx = -1;
   }
 
-  // update annns from boxlist to
-  int updateAnns(String fName) {
-    int id = images[fName]['id'];
-    List<int> delList = []; // index list of deletd boxes
-    // process anns for the image
-    for (int i = 0; i < boxList.length; i++) {
-      //Update box
-      List<dynamic> boxKey1 = boxList[i]['boxKey'][0];
-      List<dynamic> boxKey2 = boxList[i]['boxKey'][1];
-      // box is deleted. cant delete is now.
-      // We have to delte it in reverse order
-      if (boxKey1 == null || boxKey2 == null) {
-        delList.add(i);
-        continue;
-      }
-
-      Offset pt1 = getBoxCoords(i, 0);
-      Offset pt2 = getBoxCoords(i, 1);
-      Offset topleft;
-      Offset botright;
-      // convert them to actual image coordinates
-      pt1 = pt1.scale(imgScale, imgScale);
-      pt2 = pt2.scale(imgScale, imgScale);
-      // check for topleft point
-      if (pt1.dx < pt2.dx && pt1.dy < pt2.dy) {
-        topleft = pt1;
-        botright = pt2;
-      } else if (pt2.dx < pt1.dx && pt2.dy < pt1.dy) {
-        topleft = pt2;
-        botright = pt1;
-      } else {
-        return -1;
-      } // error. points have wrong order
-
-      imgToAnns[id][i]['bbox'][0] = topleft.dx;
-      imgToAnns[id][i]['bbox'][1] = topleft.dy;
-      imgToAnns[id][i]['bbox'][2] = botright.dx - topleft.dx;
-      imgToAnns[id][i]['bbox'][3] = botright.dy - topleft.dy;
-
-      // Copy keypoints
-      for (int j = 0; j < 17; j++) {
-        if (boxList[i]["kpKeys"][j] == null) {
-          imgToAnns[id][i]['keypoints'][j * 3] = 0;
-          imgToAnns[id][i]['keypoints'][j * 3 + 1] = 0;
-          imgToAnns[id][i]['keypoints'][j * 3 + 2] = 0;
-        } else {
-          Offset kp = getKpCoords(i, j);
-          //convert the kp to image coordinates
-          kp = kp.scale(imgScale, imgScale);
-          imgToAnns[id][i]['keypoints'][j * 3] = kp.dx;
-          imgToAnns[id][i]['keypoints'][(j * 3) + 1] = kp.dx;
-          // keep the visibility same
-        }
-      }
-    }
-    // Detele the boxes and corresponding annotations in reverse index
-    // so as not to change the index order
-    for (int k = delList.length - 1; k >= 0; k--) {
-      imgToAnns[id].removeAt(delList[k]);
-    }
-    return 0;
-  }
 
   // confirmation dialoge while changing images
   Future<void> showMyDialog(int index, BuildContext context, renderImg) async {
@@ -276,7 +201,6 @@ import 'Coco.dart';
               onPressed: () {
                 Navigator.of(context,rootNavigator: true).pop();
 				writeCocoFile();
-                dirtyBit = false; /// Its redundent but alertbox will not dissapear
                 loadImage(index, context, renderImg);
               },
             ),

@@ -27,7 +27,6 @@ class _CustomAppBarState extends State<CustomAppBar> {
 
   void renderImg(imIdx) {
     setState(() {
-      //	_currentImage = Image.network(_currImgUrl, scale:_scale, fit:BoxFit.none, alignment: _dxy);
       _currentImage = new ImgContainer(
           imgIdx: imIdx,
           winWidth: null,
@@ -39,8 +38,9 @@ class _CustomAppBarState extends State<CustomAppBar> {
 
 
   void _pickFiles() async {
-    files = await getFileList();
-    setState(() {});
+	files = await getFileList();
+    setState(() {
+	});
   }
 
   void _updateFiles(int idx) async {

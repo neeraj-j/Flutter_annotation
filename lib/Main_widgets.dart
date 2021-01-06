@@ -41,9 +41,9 @@ Widget menuColumn(context, renderImg, _pickFiles, remImgs) {
         children: [
           iconButtonBlue(Icons.filter_1,
               () => {workerForm(context)}, 
-			  "File Id"),
+			  "Login"),
           iconButtonBlue(Icons.folder_open, () {
-				readCocoFile(_pickFiles);
+					_pickFiles();
           }, "Load Data"),
           //iconButtonBlue(Icons.download_outlined,
           //    !coco.isEmpty ? null : () => {readCocoFile(_pickFiles)}, "Load Coco File"),
@@ -55,24 +55,22 @@ Widget menuColumn(context, renderImg, _pickFiles, remImgs) {
           iconButtonBlue(Icons.skip_next, () async {
             // Todo: check for index overflow
             if (currImgIdx + 1 < files.length) {
-              currImgIdx++;
+			  // dont increse currImgidx here
+			  loadImage(currImgIdx+1, context, renderImg);
             } else {
-              print("Last file");
 			  toast("Last File");
             }
 
             //ui.Image img =
-            loadImage(currImgIdx, context, renderImg);
           }, "Next Image"),
           iconButtonBlue(Icons.skip_previous, () async {
             if (currImgIdx - 1 >= 0) {
-              currImgIdx--;
+              loadImage(currImgIdx-1, context, renderImg);
             } else {
               print("First file");
 			  toast("First File");
             }
             //ui.Image img =
-            loadImage(currImgIdx, context, renderImg);
           }, "Previous Image"),
           iconButtonBlue(Icons.call_missed_outgoing,
               () => gotoForm(context, remImgs), "Goto Image"),
@@ -313,17 +311,26 @@ void workerForm(context) {
                       padding: EdgeInsets.all(8.0),
                       child: TextFormField(
 						  decoration: InputDecoration(
-							labelText: "Enter File Id (0-6):", 
+							labelText: "Enter User:", 
+						 ),
+						  onSaved: (String value) {
+                        if (value.isEmpty) {
+                          return;
+                        }
+						user = value;
+                      }),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: TextFormField(
+						  decoration: InputDecoration(
+							labelText: "Enter Password:", 
 						 ),
 						  onSaved: (String value) {
                         if (value.isEmpty) {
                           return;
                         }
 						int val = int.parse(value);
-						if (val<0 || val >6){
-						  toast("Error: Invalid File ID");
-						  return;
-						}
 						workerId = val;
                       }),
                     ),
