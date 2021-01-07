@@ -30,6 +30,8 @@ var labelItems = {
 double _menuWidth = 50;
 double _labelsWidth = 180;
 double _imgListWidth = 160;
+int _fileCount=1;
+var _now = new DateTime.now();
 
 Widget menuColumn(context, renderImg, _pickFiles, remImgs) {
   return SizedBox(
@@ -56,6 +58,7 @@ Widget menuColumn(context, renderImg, _pickFiles, remImgs) {
             // Todo: check for index overflow
             if (currImgIdx + 1 < files.length) {
 			  // dont increse currImgidx here
+			  _fileCount++;
 			  loadImage(currImgIdx+1, context, renderImg);
             } else {
 			  toast("Last File");
@@ -65,9 +68,9 @@ Widget menuColumn(context, renderImg, _pickFiles, remImgs) {
           }, "Next Image"),
           iconButtonBlue(Icons.skip_previous, () async {
             if (currImgIdx - 1 >= 0) {
+			  _fileCount--;
               loadImage(currImgIdx-1, context, renderImg);
             } else {
-              print("First file");
 			  toast("First File");
             }
             //ui.Image img =
@@ -91,7 +94,7 @@ Widget menuColumn(context, renderImg, _pickFiles, remImgs) {
             // delete from file list
             remImgs(-1);
             loadImage(currImgIdx, context, renderImg);
-			dirtyBit = true;
+			_fileCount++;
           }, "Delete Image"),
         ],
       ));
@@ -189,9 +192,9 @@ Widget imgList(context, renderImg) {
                                 ),
                               )
                             : CircularProgressIndicator()),
-                    SizedBox(
-                        width: 150,
-                        height: 15,
+                      SizedBox(
+						  height:15,
+						  width:150,
                         child: Text(
                           " ${files[fidx]['name']}",
                           textAlign: TextAlign.center,
@@ -356,9 +359,26 @@ void workerForm(context) {
 }
 
 Widget fileName(int idx){
-	return SizedBox(height:20,
+  return Row( children: <Widget>[
+			SizedBox(height:20,
+				width:150,
 		//child: Text(files[idx]['name'],
-		child: idx<0 ? Text("load file"): Text(files[idx]["name"],
+		child: idx<0 ? Text("Load file"): Text(files[idx]["name"],
 			textAlign: TextAlign.center,),
-		);
+		),
+			SizedBox(height:20,
+				width:100,
+                        child: Text(
+                          "Count: ${_fileCount}",
+                          textAlign: TextAlign.center,
+                          //style: TextStyle(fontSize: 10.0),
+                        )),
+			SizedBox(height:20,
+				width:100,
+                        child: Text(
+                          "Time: ${DateTime.now().difference(_now).toString().split('.')[0]}",
+                          textAlign: TextAlign.center,
+                          //style: TextStyle(fontSize: 10.0),
+                        )),
+					],);
 }

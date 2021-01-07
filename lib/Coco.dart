@@ -9,8 +9,7 @@ import "Common.dart";
 
 //String host = "http://122.172.144.91:9000";
 //String host = "http://192.168.1.3:9000";
-String user = "192.168.1.3";
-String host = "http://"+user+":9000";
+String user = "";
 
 class CocoFile {
   // Todo: add info and licences
@@ -52,6 +51,7 @@ Future<void> writeCocoFile() async {
     return;
   }
   dirtyBit = false;
+  String host = "http://"+user+":9000";
   // update flies annotation record
   List annots = updateCoco(currImgIdx);
   if (annots.isEmpty) {return;}
@@ -144,6 +144,7 @@ List updateCoco(fidx) {
 // Delete image from server and coco list
 Future<void> deleteImage(String imName) async {
   // delte from coco list
+  String host = "http://"+user+":9000";
   String url = host+'/delete/' + imName;
   final response = await http.delete(url);
   //final response =  await http.get('https://jsonplaceholder.typicode.com/albums/1');
@@ -157,6 +158,7 @@ Future<void> deleteImage(String imName) async {
 // get the list of file names 
 Future <List> getFileList() async{
   if (files.isNotEmpty) {return files;}
+  String host = "http://"+user+":9000";
   final response =  await http.get(host+'/datalist/$workerId');
   if (response.statusCode == 200) {
     //print( jsonDecode(response.body));
@@ -171,6 +173,7 @@ Future <List> getFileList() async{
 Future<Uint8List> getImage(int idx) async {
   if (idx<0){return null;}
   if (files[idx].containsKey("bytes")){return files[idx]["bytes"];}
+  String host = "http://"+user+":9000";
   String url =host+'/images/'+files[idx]['name'] ;
   Map<String, String> requestHeaders = {
        'Accept': 'application/json; charset=utf-8',

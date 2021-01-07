@@ -67,7 +67,7 @@ import 'Coco.dart';
 
   // Implements Keypoint overlays
   void showOverlayKeypoint(BuildContext context, int kpIdx,
-      {align: Alignment.topLeft}) async {
+      {align: Alignment.center}) async {
     if (currBoxIdx == -1) {
 	  toast("Error: No Box Selected ");
       return;
