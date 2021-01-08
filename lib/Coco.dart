@@ -47,9 +47,9 @@ class CocoFile {
 
 // writing 1 record at a time to db
 Future<void> writeCocoFile() async {
-  if (!dirtyBit) {
-    return;
-  }
+  //if (!dirtyBit) {
+  //  return;
+  //}
   dirtyBit = false;
   String host = "http://"+user+":9000";
   // update flies annotation record
@@ -78,12 +78,14 @@ Future<void> writeCocoFile() async {
 List updateCoco(fidx) {
   List anns=[];
   Map ann={};
+  bool _changed=false;
+  // If no change then just send the ann id
+  ann["id"] = boxList[0]["annId"][0];
   for (int i = 0; i < boxList.length; i++) {
     if (!boxList[i]["changed"][0] && !boxList[i]["changed"][1]) {
       continue;
     }
     int annId = boxList[i]["annId"][0];
-	ann['id'] = annId;
     // Todo: id annId is -1, its a new box handle it
     // Find ann id in coco annotations
     for (int j = 0; j < files[fidx]['annotations'].length; j++) {
@@ -92,6 +94,7 @@ List updateCoco(fidx) {
       }
       // update box it it is changed
       if (boxList[i]["changed"][0]) {
+		_changed = true;
         Offset top = getBoxCoords(i, 0);
         Offset bot = getBoxCoords(i, 1);
         // box is deleted reove annotations go t nex box
@@ -115,6 +118,7 @@ List updateCoco(fidx) {
       }
       // update keypooint if it is changed
       if (boxList[i]["changed"][1]) {
+		_changed = true;
         //print("Updating Keypoints");
         for (var k = 0; k < 17; k++) {
           // skeleton is from 1-17 so subtract 1
@@ -137,7 +141,14 @@ List updateCoco(fidx) {
       break;
     } // annotations for loop
   }
-  return files[fidx]["annotations"];
+  if (_changed){
+	return files[fidx]["annotations"];
+  }else{
+	ann['bbox'] = [];
+	ann['keypoints'] = [];
+	anns.add(ann);
+	
+	return anns; }
 }
 
 

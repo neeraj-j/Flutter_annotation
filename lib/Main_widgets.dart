@@ -49,7 +49,16 @@ Widget menuColumn(context, renderImg, _pickFiles, remImgs) {
           }, "Load Data"),
           //iconButtonBlue(Icons.download_outlined,
           //    !coco.isEmpty ? null : () => {readCocoFile(_pickFiles)}, "Load Coco File"),
-          iconButtonBlue(Icons.save, () => {writeCocoFile()}, "Save Image"),
+          iconButtonBlue(Icons.save, () async {
+			writeCocoFile();
+            if (currImgIdx + 1 < files.length) {
+			  _fileCount++; // count to show
+			  loadImage(currImgIdx+1, context, renderImg);
+            } else {
+			  toast("Last File");
+            }
+		  
+		  }, "Save Image"),
           Divider(indent: 1, thickness: 2, height: 2),
           iconButtonBlue(Icons.crop_square_outlined,
               () => {showOverlayBox(context)}, "Insert Bounding Box"),
@@ -58,17 +67,15 @@ Widget menuColumn(context, renderImg, _pickFiles, remImgs) {
             // Todo: check for index overflow
             if (currImgIdx + 1 < files.length) {
 			  // dont increse currImgidx here
-			  _fileCount++;
 			  loadImage(currImgIdx+1, context, renderImg);
             } else {
 			  toast("Last File");
             }
 
             //ui.Image img =
-          }, "Next Image"),
+          }, "Next Image"), 
           iconButtonBlue(Icons.skip_previous, () async {
             if (currImgIdx - 1 >= 0) {
-			  _fileCount--;
               loadImage(currImgIdx-1, context, renderImg);
             } else {
 			  toast("First File");

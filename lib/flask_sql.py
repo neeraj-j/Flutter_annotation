@@ -10,20 +10,21 @@ import io, os, sys
 import base64
 import time
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.sql import func
 
 
 app = Flask(__name__)
 # Flask RESTful cross-domain issue with Angular: PUT, OPTIONS methods
 cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 # sqlalchemy
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://pi:pi@192.168.1.100/slpp'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://pi:pi@192.168.1.3/slpp'
 db = SQLAlchemy(app)
 
 # yoga files
 cocoFilePath = "../yogadata/annotations/slpp_annot_kp_60_{}.json"
 imgPath ="../yogadata/slpp_images/"
 
-wrkr1_videos = list(range(1, 2)) 
+wrkr1_videos = list(range(1, 5)) 
 wrkr2_videos = list(range(10, 20)) 
 wrkr3_videos = list(range(30, 40)) 
 worker = {"1":wrkr1_videos,
@@ -39,6 +40,9 @@ class Image(db.Model):
     height = db.Column(db.Integer)
     width = db.Column(db.Integer)
     worker_id = db.Column(db.Integer)
+    modified = db.Column(db.Integer, default=0)
+    modify_dtime = db.Column(db.DateTime(timezone=False))
+    verify_dtime = db.Column(db.DateTime(timezone=False))
 
     def __repr__(self):
        return "<Image(filename='%s', filepath='%s', height='%d', width='%d', worker Id='%d')>" % (
@@ -101,13 +105,20 @@ def putCoco(workerid):
         return jsonify(success=False) 
     print("Saving coco " +time.strftime("%H:%M:%S", time.localtime()) , file = sys.stderr)
     annots = json.loads(request.data)
-    print(annots)
+    #print(annots)
     for annot in annots:
         annRec = Annotation.query.filter_by(id=annot['id']).first()
         annRec.images.worker_id=int(workerid)
         #print(annRec.images)
-        annRec.bbox = annot['bbox']
-        annRec.keypoints = annot['keypoints']
+        annRec.images.modify_dtime= func.now()  # time stamp
+        if len(annot['bbox'])==0:
+          annRec.images.modified= 1 #no change
+          #print("Not changed")
+        else:
+          annRec.images.modified= 2 #changed
+          #print("changed")
+          annRec.bbox = annot['bbox']
+          annRec.keypoints = annot['keypoints']
         db.session.commit()
     return jsonify(success=True) 
 
@@ -119,6 +130,7 @@ def dicfunc(e):
 # send images and annotation based on worker
 @app.route("/datalist/<workr_id>", methods=['GET'])
 def send_image_list(workr_id):
+    print("Sending list " +time.strftime("%H:%M:%S", time.localtime()) , file = sys.stderr)
     qryList = Image.query.filter(Image.video_id.in_(worker[workr_id])).order_by(Image.id)
     imgList = []
     for imgRec in qryList:
