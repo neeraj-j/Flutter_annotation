@@ -27,7 +27,7 @@ List<Map> boxList = [];
 double bbIconSize = 15; // icon size of box
 double kpIconSize = 15; // icon size of keypoint
 
-int workerId = 1;  // used fro getting the coco file
+String workerId = "";  // used fro getting the coco file
 
 // Skeleton
 List<List<int>> skeleton = [

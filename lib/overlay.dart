@@ -218,7 +218,9 @@ class _OverlayBoxState extends State<OverlayBox> {
           // Delete
           removeOverlayBoxEntry(widget.boxIdx);
           dirtyBit = true;
+		  // make bbox and Keypoints changed
 		  boxList[widget.boxIdx]["changed"][0] = true;
+		  boxList[widget.boxIdx]["changed"][1] = true;
         },
         onTap: () {
           // select and heighlight

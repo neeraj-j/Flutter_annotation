@@ -340,8 +340,7 @@ void workerForm(context) {
                         if (value.isEmpty) {
                           return;
                         }
-						int val = int.parse(value);
-						workerId = val;
+						workerId = value;
                       }),
                     ),
                     Padding(

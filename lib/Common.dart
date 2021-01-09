@@ -36,6 +36,7 @@ void purgeOverlayEntry() {
   for (var k = 0; k < boxList.length; k++) {
     // remove 2 points of box
     for (var i = 0; i < 2; i++) {
+      if (boxList[k]["boxOvrls"][i] == null) continue;
       boxList[k]["boxOvrls"][i].remove();
       boxList[k]["boxOvrls"][i] = null;
       boxList[k]["boxKeys"][i] = null;

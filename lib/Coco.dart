@@ -100,21 +100,21 @@ List updateCoco(fidx) {
         // box is deleted reove annotations go t nex box
         if (top == null || bot == null) {
 		  files[fidx]['annotations'][j]["bbox"] = [0,0,0,0];
-          break;
-        }
-        // check which one is tl annd bright
-        if (top.dx > bot.dx || top.dy > bot.dy) {
-          //Display toast and return
-          print("Wrong top left point");
-          return [];
-        }
-        //print("Updating box $i");
-        top = top.scale(imgScale, imgScale);
-        bot = bot.scale(imgScale, imgScale);
-        files[fidx]['annotations'][j]["bbox"][0] = top.dx;
-        files[fidx]['annotations'][j]["bbox"][1] = top.dy;
-        files[fidx]['annotations'][j]["bbox"][2] = bot.dx - top.dx;
-        files[fidx]['annotations'][j]["bbox"][3] = bot.dy - top.dy;
+        }else{
+		  // check which one is tl annd bright
+		  if (top.dx > bot.dx || top.dy > bot.dy) {
+			//Display toast and return
+			toast("Wrong top left point !!! ");
+			return [];
+		  }
+		  //print("Updating box $i");
+		  top = top.scale(imgScale, imgScale);
+		  bot = bot.scale(imgScale, imgScale);
+		  files[fidx]['annotations'][j]["bbox"][0] = top.dx;
+		  files[fidx]['annotations'][j]["bbox"][1] = top.dy;
+		  files[fidx]['annotations'][j]["bbox"][2] = bot.dx - top.dx;
+		  files[fidx]['annotations'][j]["bbox"][3] = bot.dy - top.dy;
+		  }
       }
       // update keypooint if it is changed
       if (boxList[i]["changed"][1]) {
