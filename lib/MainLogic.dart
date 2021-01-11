@@ -218,3 +218,12 @@ import 'Coco.dart';
     );
   }
 
+  // Implements Statistics overlays
+  void showOverlayStats(BuildContext context) async {
+    OverlayState overlayState = Overlay.of(context);
+    // Generate the overlay entry
+    statsOverlayEntry = OverlayEntry(builder: (BuildContext context) {
+      return OverlayStats();
+    },opaque:true );
+    overlayState.insert(statsOverlayEntry);
+  }

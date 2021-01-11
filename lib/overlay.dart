@@ -61,7 +61,7 @@ class _ImgContainerState extends State<ImgContainer> {
   Widget build(BuildContext context) {
     myContext = context;
     return SizedBox(
-	  key: imgKey,
+      key: imgKey,
       width: widget.winWidth,
       height: widget.winHeight,
       // No gesture detector for image
@@ -131,12 +131,11 @@ class _OverlayKPState extends State<OverlayKP> {
           // Long press not working
           removeOverlayKpEntry(widget.boxIdx, widget.kpIdx);
           dirtyBit = true;
-		  boxList[widget.boxIdx]["changed"][1] = true;
+          boxList[widget.boxIdx]["changed"][1] = true;
         },
         //behavior: HitTestBehavior.deferToChild,
         onPanUpdate: (details) {
           setState(() {
-			
             double dx = details.delta.dx / (overlayPos.width / 2);
             double dy = details.delta.dy / (overlayPos.height / 2);
             _dragAlignment += Alignment(dx, dy);
@@ -155,14 +154,14 @@ class _OverlayKPState extends State<OverlayKP> {
             }
           });
           dirtyBit = true;
-		  boxList[widget.boxIdx]["changed"][1] = true;
+          boxList[widget.boxIdx]["changed"][1] = true;
         },
         child: CustomPaint(
           foregroundPainter: DrawSkeleton(widget.boxIdx),
           willChange: true,
           child: Align(
               //alignment: _dragAlignment,
-			  alignment:_dragAlignment,
+              alignment: _dragAlignment,
               child: Tooltip(
                 message: labelText[widget.kpIdx],
                 child: Icon(Icons.circle,
@@ -218,9 +217,9 @@ class _OverlayBoxState extends State<OverlayBox> {
           // Delete
           removeOverlayBoxEntry(widget.boxIdx);
           dirtyBit = true;
-		  // make bbox and Keypoints changed
-		  boxList[widget.boxIdx]["changed"][0] = true;
-		  boxList[widget.boxIdx]["changed"][1] = true;
+          // make bbox and Keypoints changed
+          boxList[widget.boxIdx]["changed"][0] = true;
+          boxList[widget.boxIdx]["changed"][1] = true;
         },
         onTap: () {
           // select and heighlight
@@ -260,7 +259,7 @@ class _OverlayBoxState extends State<OverlayBox> {
             }
           });
           dirtyBit = true;
-		  boxList[widget.boxIdx]["changed"][0] = true;
+          boxList[widget.boxIdx]["changed"][0] = true;
         },
         child: CustomPaint(
           foregroundPainter: DrawRect(widget.boxIdx, clr),
@@ -278,7 +277,91 @@ class _OverlayBoxState extends State<OverlayBox> {
     ); // Container
   }
 }
+
 // ------ Box overlay container End -------------------//
+// ------ Statistics overlay container Start -------------------//
+class OverlayStats extends StatefulWidget {
+  OverlayStats({
+    Key key,
+    // @required this.pContext,
+  }) : super(key: key);
+
+  @override
+  _OverlayStatState createState() => _OverlayStatState();
+}
+
+class _OverlayStatState extends State<OverlayStats> {
+  //Alignment _dragAlignment = Alignment.center;
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Rect imgPos = getPosition(imgKey);
+	Rect overlayPos = imgPos.topLeft & const Size(300,400);
+    return CustomSingleChildLayout(
+      delegate: _OverlayableContainerLayout(overlayPos),
+       child: FutureBuilder<List>(
+              future: getData(),
+              builder: (context, snapshot) => snapshot.hasData
+      ? Container(
+        child: Column(children: <Widget>[
+          dataTable(snapshot.data),
+          RaisedButton(
+            onPressed: () {statsOverlayEntry.remove();},
+            child: const Text('Back', style: TextStyle(fontSize: 20)),
+          ),
+        ]),
+      ):CircularProgressIndicator()),
+    ); // Container
+  }
+
+  DataRow dataRow(rec){
+        return DataRow(
+          cells: <DataCell>[
+            DataCell(Text(rec['Name'])),
+            DataCell(Text(rec['count'].toString())),
+            DataCell(Text(Duration(seconds:rec['seconds'].round()).toString())),
+          ],
+        );
+  }
+
+  Widget dataTable(data) {
+    return DataTable(
+      columns: const <DataColumn>[
+        DataColumn(
+          label: Text(
+            'Name',
+            style: TextStyle(fontStyle: FontStyle.italic),
+          ),
+        ),
+        DataColumn(
+          label: Text(
+            'Images',
+            style: TextStyle(fontStyle: FontStyle.italic),
+          ),
+        ),
+        DataColumn(
+          label: Text(
+            'Time',
+            style: TextStyle(fontStyle: FontStyle.italic),
+          ),
+        ),
+      ],
+      rows: <DataRow>[
+		dataRow(data[0]),
+		dataRow(data[1]),
+		dataRow(data[2]),
+		dataRow(data[3]),
+		dataRow(data[4]),
+      ],
+    );
+  }
+}
+
+// ------ Stats overlay container End -------------------//
 
 class _OverlayableContainerLayout extends SingleChildLayoutDelegate {
   _OverlayableContainerLayout(this.position);

@@ -29,6 +29,8 @@ double kpIconSize = 15; // icon size of keypoint
 
 String workerId = "";  // used fro getting the coco file
 
+OverlayEntry statsOverlayEntry;
+
 // Skeleton
 List<List<int>> skeleton = [
   [16, 14],

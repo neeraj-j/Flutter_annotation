@@ -94,6 +94,9 @@ Widget menuColumn(context, renderImg, _pickFiles, remImgs) {
             imgScale += 0.1;
             renderImg(currImgIdx);
           }, "Zoom Out"), */
+          iconButtonBlack(Icons.assessment, () {
+			showOverlayStats(context);
+          } , "Performance"),
           Divider(indent: 2, thickness: 2, height: 40),
           iconButtonBlack(Icons.delete, () {
             //delete from server and coco list

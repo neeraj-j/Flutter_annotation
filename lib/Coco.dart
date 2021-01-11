@@ -169,6 +169,7 @@ Future<void> deleteImage(String imName) async {
 // get the list of file names 
 Future <List> getFileList() async{
   if (files.isNotEmpty) {return files;}
+  toast("Loading Data. Please Wait!!");
   String host = "http://"+user+":9000";
   final response =  await http.get(host+'/datalist/$workerId');
   if (response.statusCode == 200) {
@@ -202,4 +203,15 @@ Future<Uint8List> getImage(int idx) async {
   return bytes;
 }
 
-
+// Get performance data
+Future <List> getData() async{
+  String host = "http://"+user+":9000";
+  final response =  await http.get(host+'/perform');
+  if (response.statusCode == 200) {
+    //print( jsonDecode(response.body));
+    return jsonDecode(response.body);
+  } else {
+	toast("Failed to get file Names");
+  }
+  return [];
+}
