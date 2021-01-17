@@ -39,6 +39,9 @@ class _CustomAppBarState extends State<CustomAppBar> {
 
   void _pickFiles() async {
 	files = await getFileList();
+	if (files.isEmpty){
+	  toast("Data not found");
+	}
     setState(() {
 	});
   }
@@ -50,6 +53,39 @@ class _CustomAppBarState extends State<CustomAppBar> {
 	  files.removeRange(0, idx);
 	}
     setState(() {});
+  }
+
+  void toggleFunc() {
+  
+  }
+
+  List<bool> isSelected = [true, false];
+  // Mode Toggle button
+  Widget modeToggle() {
+	  return RotatedBox(
+		  quarterTurns:1,
+		  child: ToggleButtons(
+		  children: <Widget>[
+			  Tooltip(message:"Modify",
+			    child:RotatedBox(quarterTurns:3, child:Icon(Icons.edit))),
+			  Tooltip(message: "Verify",
+			    child:RotatedBox(quarterTurns:3, child:Icon(Icons.domain_verification))),
+		  ],
+		  onPressed: (int index) {
+			  print("Toggle $index");
+			  setState(() {
+				 for (int buttonIndex = 0; buttonIndex < isSelected.length; buttonIndex++) {
+					  if (buttonIndex == index) {
+						  isSelected[buttonIndex] = true;
+					  } else {
+						  isSelected[buttonIndex] = false;
+					  }
+				  }
+			  });
+		  },
+		  isSelected: isSelected,
+	  ),
+	);
   }
 
   final ScrollController lblscroller = ScrollController();

@@ -300,7 +300,7 @@ class _OverlayStatState extends State<OverlayStats> {
   @override
   Widget build(BuildContext context) {
     Rect imgPos = getPosition(imgKey);
-	Rect overlayPos = imgPos.topLeft & const Size(300,400);
+	Rect overlayPos = imgPos.topLeft & const Size(400,400);
     return CustomSingleChildLayout(
       delegate: _OverlayableContainerLayout(overlayPos),
        child: FutureBuilder<List>(
@@ -323,7 +323,7 @@ class _OverlayStatState extends State<OverlayStats> {
           cells: <DataCell>[
             DataCell(Text(rec['Name'])),
             DataCell(Text(rec['count'].toString())),
-            DataCell(Text(Duration(seconds:rec['seconds'].round()).toString())),
+            DataCell(Text(Duration(seconds:rec['seconds'].round()).toString().split('.')[0])),
           ],
         );
   }
@@ -345,17 +345,17 @@ class _OverlayStatState extends State<OverlayStats> {
         ),
         DataColumn(
           label: Text(
-            'Time',
+            'Time (HH:MM:SS)',
             style: TextStyle(fontStyle: FontStyle.italic),
           ),
         ),
       ],
       rows: <DataRow>[
 		dataRow(data[0]),
-		dataRow(data[1]),
-		dataRow(data[2]),
-		dataRow(data[3]),
-		dataRow(data[4]),
+		//dataRow(data[1]),
+		//dataRow(data[2]),
+		//dataRow(data[3]),
+		//dataRow(data[4]),
       ],
     );
   }

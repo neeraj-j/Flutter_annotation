@@ -10,6 +10,8 @@ import "Common.dart";
 //String host = "http://122.172.144.91:9000";
 //String host = "http://192.168.1.3:9000";
 String user = "";
+// Edit mode =0; verify mode =1
+int mode=0;
 
 class CocoFile {
   // Todo: add info and licences
@@ -55,9 +57,17 @@ Future<void> writeCocoFile() async {
   // update flies annotation record
   List annots = updateCoco(currImgIdx);
   if (annots.isEmpty) {return;}
+  String command;
+  if (mode ==0){
+	command =  "cocosave";
+  } else if (mode ==1){
+	command =  "verify";
+  }else{
+	print("mode : $mode");
+  }
   // we dont want to sendd them back
   final http.Response response = await http.put(
-    host+'/cocosave/$workerId',
+    host+'/$command/$workerId',
     headers: <String, String>{
       // "Accept": "application/json",
       // 'Access-Control-Allow-Origin': '*',
@@ -169,9 +179,17 @@ Future<void> deleteImage(String imName) async {
 // get the list of file names 
 Future <List> getFileList() async{
   if (files.isNotEmpty) {return files;}
-  toast("Loading Data. Please Wait!!");
+  String command;
+  if (mode ==0){
+	command =  "datalist";
+  } else if (mode ==1){
+	command =  "verilist";
+  }else{
+	print("mode : $mode");
+  }
+  toast("Loading Data ...");
   String host = "http://"+user+":9000";
-  final response =  await http.get(host+'/datalist/$workerId');
+  final response =  await http.get(host+'/$command/$workerId');
   if (response.statusCode == 200) {
     //print( jsonDecode(response.body));
     return jsonDecode(response.body);
@@ -206,7 +224,7 @@ Future<Uint8List> getImage(int idx) async {
 // Get performance data
 Future <List> getData() async{
   String host = "http://"+user+":9000";
-  final response =  await http.get(host+'/perform');
+  final response =  await http.get(host+'/perform/$workerId');
   if (response.statusCode == 200) {
     //print( jsonDecode(response.body));
     return jsonDecode(response.body);

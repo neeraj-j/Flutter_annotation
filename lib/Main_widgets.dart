@@ -41,8 +41,8 @@ Widget menuColumn(context, renderImg, _pickFiles, remImgs) {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          iconButtonBlue(Icons.filter_1,
-              () => {workerForm(context)}, 
+          iconButtonBlue(Icons.login_outlined,
+              () => {loginForm(context)}, 
 			  "Login"),
           iconButtonBlue(Icons.folder_open, () {
 					_pickFiles();
@@ -106,6 +106,7 @@ Widget menuColumn(context, renderImg, _pickFiles, remImgs) {
             loadImage(currImgIdx, context, renderImg);
 			_fileCount++;
           }, "Delete Image"),
+          Divider(indent: 2, thickness: 2, height: 40),
         ],
       ));
 }
@@ -307,12 +308,16 @@ void gotoForm(context, remImgs) {
       });
 }
 
-void workerForm(context) {
+void loginForm(context) {
   showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          content: Stack(
+          //content: Stack(
+           // overflow: Overflow.visible,
+           content: StatefulBuilder(
+             builder: (BuildContext context, StateSetter setState) {
+           return Stack(
             overflow: Overflow.visible,
             children: <Widget>[
               Form(
@@ -347,6 +352,41 @@ void workerForm(context) {
                       }),
                     ),
                     Padding(
+                      padding: EdgeInsets.all(8.0),
+					  child:Row(
+		  mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Text(
+              'Edit:',
+              style: new TextStyle(color: Colors.black.withOpacity(0.7),fontSize: 15.0),
+            ),
+            Radio(
+              value: 0,
+              groupValue: mode,
+              onChanged: (val) {
+                setState(() {
+                  mode = val;
+                });
+              },
+            ),
+            Text(
+              'Verify:',
+              style: new TextStyle(color: Colors.black.withOpacity(0.7),fontSize: 15.0),
+            ),
+            Radio(
+              value: 1,
+              groupValue: mode,
+              onChanged: (val) {
+                setState(() {
+                  mode = val;
+                });
+              },
+            ),
+		] 
+		),
+					  // Todo add Radio button
+					  ),
+                    Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: RaisedButton(
                         child: Text("Submit"),
@@ -362,10 +402,11 @@ void workerForm(context) {
                 ),
               ),
             ],
-          ),
+          ); }),
         );
       });
 }
+
 
 Widget fileName(int idx){
   return Row( children: <Widget>[
