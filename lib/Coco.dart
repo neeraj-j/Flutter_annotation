@@ -179,6 +179,7 @@ Future<void> deleteImage(String imName) async {
 // get the list of file names 
 Future <List> getFileList() async{
   if (files.isNotEmpty) {return files;}
+  if (workerId =="" || user==""){return [];}
   String command;
   if (mode ==0){
 	command =  "datalist";

@@ -30,10 +30,12 @@ var labelItems = {
 double _menuWidth = 50;
 double _labelsWidth = 180;
 double _imgListWidth = 160;
-int _fileCount=1;
+int _fileCount = 1;
 var _now = new DateTime.now();
 
-Widget menuColumn(context, renderImg, _pickFiles, remImgs) {
+Widget menuColumn(context, renderImg, _pickFiles, remImgs, refresh) {
+  List<IconData> icos = [Icons.save, Icons.verified_user];
+  List<String> strs = ["Save Image", "Verify Image"];
   return SizedBox(
       width: _menuWidth,
       height: MediaQuery.of(context).size.height,
@@ -41,24 +43,23 @@ Widget menuColumn(context, renderImg, _pickFiles, remImgs) {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          iconButtonBlue(Icons.login_outlined,
-              () => {loginForm(context)}, 
-			  "Login"),
+          iconButtonBlue(
+			  // oly if files is empty
+              Icons.login_outlined, () => {files.isEmpty?loginForm(context, refresh):null}, "Login"),
           iconButtonBlue(Icons.folder_open, () {
-					_pickFiles();
+            _pickFiles();
           }, "Load Data"),
           //iconButtonBlue(Icons.download_outlined,
           //    !coco.isEmpty ? null : () => {readCocoFile(_pickFiles)}, "Load Coco File"),
-          iconButtonBlue(Icons.save, () async {
-			writeCocoFile();
-            if (currImgIdx + 1 < files.length) {
-			  _fileCount++; // count to show
-			  loadImage(currImgIdx+1, context, renderImg);
-            } else {
-			  toast("Last File");
-            }
-		  
-		  }, "Save Image"),
+          iconButtonBlue(icos[mode], () async {
+              writeCocoFile();
+              if (currImgIdx + 1 < files.length) {
+                _fileCount++; // count to show
+                loadImage(currImgIdx + 1, context, renderImg);
+              } else {
+                toast("Last File");
+              }
+            }, strs[mode]),
           Divider(indent: 1, thickness: 2, height: 2),
           iconButtonBlue(Icons.crop_square_outlined,
               () => {showOverlayBox(context)}, "Insert Bounding Box"),
@@ -66,26 +67,26 @@ Widget menuColumn(context, renderImg, _pickFiles, remImgs) {
           iconButtonBlue(Icons.skip_next, () async {
             // Todo: check for index overflow
             if (currImgIdx + 1 < files.length) {
-			  // dont increse currImgidx here
-			  loadImage(currImgIdx+1, context, renderImg);
+              // dont increse currImgidx here
+              loadImage(currImgIdx + 1, context, renderImg);
             } else {
-			  toast("Last File");
+              toast("Last File");
             }
 
             //ui.Image img =
-          }, "Next Image"), 
+          }, "Next Image"),
           iconButtonBlue(Icons.skip_previous, () async {
             if (currImgIdx - 1 >= 0) {
-              loadImage(currImgIdx-1, context, renderImg);
+              loadImage(currImgIdx - 1, context, renderImg);
             } else {
-			  toast("First File");
+              toast("First File");
             }
             //ui.Image img =
           }, "Previous Image"),
           iconButtonBlue(Icons.call_missed_outgoing,
               () => gotoForm(context, remImgs), "Goto Image"),
           Divider(indent: 2, thickness: 2, height: 40),
-		  /*
+          /*
           iconButtonBlack(Icons.zoom_in_rounded, () {
             imgScale -= 0.1;
             renderImg(currImgIdx);
@@ -95,8 +96,8 @@ Widget menuColumn(context, renderImg, _pickFiles, remImgs) {
             renderImg(currImgIdx);
           }, "Zoom Out"), */
           iconButtonBlack(Icons.assessment, () {
-			showOverlayStats(context);
-          } , "Performance"),
+            showOverlayStats(context);
+          }, "Performance"),
           Divider(indent: 2, thickness: 2, height: 40),
           iconButtonBlack(Icons.delete, () {
             //delete from server and coco list
@@ -104,7 +105,7 @@ Widget menuColumn(context, renderImg, _pickFiles, remImgs) {
             // delete from file list
             remImgs(-1);
             loadImage(currImgIdx, context, renderImg);
-			_fileCount++;
+            _fileCount++;
           }, "Delete Image"),
           Divider(indent: 2, thickness: 2, height: 40),
         ],
@@ -120,7 +121,7 @@ Widget imgColumn(context, _currentImage) {
       children: [
         // Center image
         _currentImage,
-		fileName(_currentImage.imgIdx),
+        fileName(_currentImage.imgIdx),
       ],
     ),
   );
@@ -173,7 +174,7 @@ Widget labelList(context, _scrollcontroller) {
 
 Widget imgList(context, renderImg) {
   return Scrollbar(
-	  // scroller is giving error
+    // scroller is giving error
     //controller: _scrollcontroller,
     //isAlwaysShown: true,
     child: SizedBox(
@@ -183,7 +184,7 @@ Widget imgList(context, renderImg) {
         // color: Colors.deepOrange,
         child: files.isNotEmpty
             ? ListView.separated(
-     //           controller: _scrollcontroller,
+                //           controller: _scrollcontroller,
                 padding: EdgeInsets.all(2.0),
                 scrollDirection: Axis.vertical,
                 itemBuilder: (BuildContext context, int fidx) => Column(
@@ -203,9 +204,9 @@ Widget imgList(context, renderImg) {
                                 ),
                               )
                             : CircularProgressIndicator()),
-                      SizedBox(
-						  height:15,
-						  width:150,
+                    SizedBox(
+                        height: 15,
+                        width: 150,
                         child: Text(
                           " ${files[fidx]['name']}",
                           textAlign: TextAlign.center,
@@ -271,21 +272,22 @@ void gotoForm(context, remImgs) {
                     Padding(
                       padding: EdgeInsets.all(8.0),
                       child: TextFormField(
-						  decoration: InputDecoration(
-							labelText: "Goto File (xxxx_xxxxxx.jpg):", 
-						 ),
-						  onSaved: (String value) {
-                        if (value.isEmpty) {
-                          return;
-                        }
-                        //remote all images before this image
-						// make list of filenames and find the index
-                        List list = files.map((file) => file["name"]).toList();
-                        int idx = list.indexOf(value);
-                        if (idx > 0) {
-                          remImgs(idx);
-                        }
-                      }),
+                          decoration: InputDecoration(
+                            labelText: "Goto File (xxxx_xxxxxx.jpg):",
+                          ),
+                          onSaved: (String value) {
+                            if (value.isEmpty) {
+                              return;
+                            }
+                            //remote all images before this image
+                            // make list of filenames and find the index
+                            List list =
+                                files.map((file) => file["name"]).toList();
+                            int idx = list.indexOf(value);
+                            if (idx > 0) {
+                              remImgs(idx);
+                            }
+                          }),
                     ),
                     Padding(
                       padding: const EdgeInsets.all(8.0),
@@ -308,127 +310,141 @@ void gotoForm(context, remImgs) {
       });
 }
 
-void loginForm(context) {
+void loginForm(context, refresh) {
   showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           //content: Stack(
-           // overflow: Overflow.visible,
-           content: StatefulBuilder(
-             builder: (BuildContext context, StateSetter setState) {
-           return Stack(
-            overflow: Overflow.visible,
-            children: <Widget>[
-              Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    Padding(
-                      padding: EdgeInsets.all(8.0),
-                      child: TextFormField(
-						  decoration: InputDecoration(
-							labelText: "Enter User:", 
-						 ),
-						  onSaved: (String value) {
-                        if (value.isEmpty) {
-                          return;
-                        }
-						user = value;
-                      }),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.all(8.0),
-                      child: TextFormField(
-						  decoration: InputDecoration(
-							labelText: "Enter Password:", 
-						 ),
-						  onSaved: (String value) {
-                        if (value.isEmpty) {
-                          return;
-                        }
-						workerId = value;
-                      }),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.all(8.0),
-					  child:Row(
-		  mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'Edit:',
-              style: new TextStyle(color: Colors.black.withOpacity(0.7),fontSize: 15.0),
-            ),
-            Radio(
-              value: 0,
-              groupValue: mode,
-              onChanged: (val) {
-                setState(() {
-                  mode = val;
-                });
-              },
-            ),
-            Text(
-              'Verify:',
-              style: new TextStyle(color: Colors.black.withOpacity(0.7),fontSize: 15.0),
-            ),
-            Radio(
-              value: 1,
-              groupValue: mode,
-              onChanged: (val) {
-                setState(() {
-                  mode = val;
-                });
-              },
-            ),
-		] 
-		),
-					  // Todo add Radio button
-					  ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: RaisedButton(
-                        child: Text("Submit"),
-                        onPressed: () {
-                          if (_formKey.currentState.validate()) {
-                            _formKey.currentState.save();
-                            Navigator.of(context).pop();
-                          }
-                        },
+          // overflow: Overflow.visible,
+          content: StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+            return Stack(
+              clipBehavior: Clip.antiAlias,
+              children: <Widget>[
+                Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: TextFormField(
+                            decoration: InputDecoration(
+                              labelText: "Enter User:",
+                            ),
+                            onSaved: (String value) {
+                              if (value.isEmpty) {
+                                return;
+                              }
+                              user = value;
+                            }),
                       ),
-                    )
-                  ],
+                      Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: TextFormField(
+                            decoration: InputDecoration(
+                              labelText: "Enter Password:",
+                            ),
+                            onSaved: (String value) {
+                              if (value.isEmpty) {
+                                return;
+                              }
+                              workerId = value;
+                            }),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text(
+                                'Edit:',
+                                style: new TextStyle(
+                                    color: Colors.black.withOpacity(0.7),
+                                    fontSize: 15.0),
+                              ),
+                              Radio(
+                                value: 0,
+                                groupValue: mode,
+                                onChanged: (val) {
+								  refresh();
+                                  setState(() {
+                                    mode = val;
+                                  });
+                                },
+                              ),
+                              Text(
+                                'Verify:',
+                                style: new TextStyle(
+                                    color: Colors.black.withOpacity(0.7),
+                                    fontSize: 15.0),
+                              ),
+                              Radio(
+                                value: 1,
+                                groupValue: mode,
+                                onChanged: (val) {
+								  refresh();
+                                  setState(() {
+                                    mode = val;
+                                  });
+                                },
+                              ),
+                            ]),
+                        // Todo add Radio button
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: RaisedButton(
+                          child: Text("Submit"),
+                          onPressed: () {
+                            if (_formKey.currentState.validate()) {
+                              _formKey.currentState.save();
+                              Navigator.of(context).pop();
+                            }
+                          },
+                        ),
+                      )
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ); }),
+              ],
+            );
+          }),
         );
       });
 }
 
-
-Widget fileName(int idx){
-  return Row( children: <Widget>[
-			SizedBox(height:20,
-				width:150,
-		//child: Text(files[idx]['name'],
-		child: idx<0 ? Text("Load file"): Text(files[idx]["name"],
-			textAlign: TextAlign.center,),
-		),
-			SizedBox(height:20,
-				width:100,
-                        child: Text(
-                          "Count: ${_fileCount}",
-                          textAlign: TextAlign.center,
-                          //style: TextStyle(fontSize: 10.0),
-                        )),
-			SizedBox(height:20,
-				width:100,
-                        child: Text(
-                          "Time: ${DateTime.now().difference(_now).toString().split('.')[0]}",
-                          textAlign: TextAlign.center,
-                          //style: TextStyle(fontSize: 10.0),
-                        )),
-					],);
+Widget fileName(int idx) {
+  return Row(
+    children: <Widget>[
+      SizedBox(
+        height: 20,
+        width: 150,
+        //child: Text(files[idx]['name'],
+        child: idx < 0
+            ? Text("Load file")
+            : Text(
+                files[idx]["name"],
+                textAlign: TextAlign.center,
+              ),
+      ),
+      SizedBox(
+          height: 20,
+          width: 100,
+          child: Text(
+            "Count: ${_fileCount}",
+            textAlign: TextAlign.center,
+            //style: TextStyle(fontSize: 10.0),
+          )),
+      SizedBox(
+          height: 20,
+          width: 100,
+          child: Text(
+            "Time: ${DateTime.now().difference(_now).toString().split('.')[0]}",
+            textAlign: TextAlign.center,
+            //style: TextStyle(fontSize: 10.0),
+          )),
+    ],
+  );
 }

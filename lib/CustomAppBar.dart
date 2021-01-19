@@ -46,6 +46,14 @@ class _CustomAppBarState extends State<CustomAppBar> {
 	});
   }
 
+  int redraw=0;
+  void refresh(){
+	redraw++;
+    setState(() {
+	});
+  
+  }
+
   void _updateFiles(int idx) async {
 	if (idx == -1){ 
 		files.removeAt(currImgIdx);
@@ -53,10 +61,6 @@ class _CustomAppBarState extends State<CustomAppBar> {
 	  files.removeRange(0, idx);
 	}
     setState(() {});
-  }
-
-  void toggleFunc() {
-  
   }
 
   List<bool> isSelected = [true, false];
@@ -103,7 +107,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                menuColumn(context, renderImg, _pickFiles, _updateFiles), // Icon columns
+                menuColumn(context, renderImg, _pickFiles, _updateFiles, refresh), // Icon columns
 				imgColumn(context, _currentImage),  // Main image window
 				labelList(context, lblscroller), // Lables
 				imgList(context, renderImg),
