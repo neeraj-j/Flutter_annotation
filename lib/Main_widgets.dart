@@ -445,6 +445,14 @@ Widget fileName(int idx) {
             textAlign: TextAlign.center,
             //style: TextStyle(fontSize: 10.0),
           )),
+      SizedBox(
+          height: 20,
+          width: 100,
+          child: Text(
+            "Total: ${files.length}",
+            textAlign: TextAlign.center,
+            //style: TextStyle(fontSize: 10.0),
+          )),
     ],
   );
 }

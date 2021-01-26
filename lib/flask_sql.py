@@ -13,23 +13,24 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql import func
 import datetime
 
+model = "pvs"  #slpp
 
 app = Flask(__name__)
 # Flask RESTful cross-domain issue with Angular: PUT, OPTIONS methods
 cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 # sqlalchemy
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://pi:pi@192.168.1.3/slpp'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://pi:pi@192.168.1.3/{}'.format(model)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False 
 db = SQLAlchemy(app)
 
 # yoga files
-cocoFilePath = "../yogadata/annotations/slpp_annot_kp_60_{}.json"
-imgPath ="../yogadata/slpp_images/"
+#cocoFilePath = "../yogadata/annotations/slpp_annot_kp_60_{}.json"
+imgPath ="../yogadata/{}_images/".format(model)
 
 wrkr_id = {"Neeraj":1, "Anjali":2, "Laxmi":3, "Ashish":4, "Deepak":5}
 
-wrkr1_videos = list(range(10, 20))    #(1,10)(10,20)(20,30)(30,40)(40,50) (50,60) (60,70)(70,80)i(90,100)(100,110)(110,120)
-wrkr2_videos = list(range(10, 20)) 
+wrkr1_videos = list(range(0, 10))    #(1,10)(10,20)(20,30)(30,40)(40,50) (50,60) (60,70)(70,80)i(90,100)(100,110)(110,120)
+wrkr2_videos = list(range(10, 20))   
 wrkr3_videos = list(range(20, 30)) 
 wrkr4_videos = list(range(30, 40)) 
 wrkr5_videos = list(range(40, 50)) 
@@ -73,7 +74,7 @@ class Annotation(db.Model):
     iscrowd = db.Column(db.Boolean, default=False)
     category_id = db.Column(db.Integer, default=1)
     image_id = db.Column(db.Integer, db.ForeignKey('images.id'))
-    images = db.relationship("Image", back_populates="annotations")
+    images = db.relationship("Image", back_populates="annotations", lazy="joined")
 
     def __repr__(self):
         return "<Image(segmentation='%s', keypoints='%s', bbox='%s',  \
@@ -88,7 +89,7 @@ Image.annotations = db.relationship(
          "Annotation", order_by=Annotation.id, 
          back_populates="images",
          cascade="all, delete",  # delete whne parent is deleted
-         passive_deletes=True)
+         passive_deletes=True, lazy="joined")
 
 db.create_all()
 
@@ -153,7 +154,7 @@ def dicfunc(e):
 @app.route("/datalist/<workr_id>", methods=['GET'])
 def send_image_list(workr_id):
     print("Sending list " +time.strftime("%H:%M:%S", time.localtime()) , file = sys.stderr)
-    qryList = Image.query.filter((Image.video_id.in_(wrkr_vids[workr_id]))&(Image.modified==0)).order_by(Image.id)
+    qryList = Image.query.filter((Image.video_id.in_(wrkr_vids[workr_id]))&(Image.modified==0)).order_by(Image.id).all()
     imgList = []
     for imgRec in qryList:
         fdata ={}
@@ -178,7 +179,7 @@ def send_image_list(workr_id):
 @app.route("/verilist/<workr_id>", methods=['GET'])
 def send_veri_list(workr_id):
     print("Sending verify list " +time.strftime("%H:%M:%S", time.localtime()) , file = sys.stderr)
-    qryList = Image.query.filter((Image.video_id.in_(wrkr_vids[workr_id]))&(Image.verified==0)).order_by(Image.id)
+    qryList = Image.query.filter((Image.video_id.in_(wrkr_vids[workr_id]))&(Image.verified==0)).order_by(Image.id).all()
     imgList = []
     for imgRec in qryList:
         fdata ={}
@@ -220,9 +221,9 @@ def deleteImg(name):
     db.session.commit()
     return jsonify(success=True) 
 
-# get performance data
-@app.route("/perform/<worker>", methods=['GET'])
-def get_perform_data(worker):
+# get performance data edit mode
+@app.route("/eperform/<worker>", methods=['GET'])
+def get_eperform_data(worker):
     wrkrList = []
     for name,id in wrkr_id.items():
         qryList = Image.query.filter((Image.worker_id==id)&(Image.modified!=0)).order_by(Image.id)
@@ -259,6 +260,41 @@ def get_perform_data(worker):
     
     return jsonify(wrkrList)
 
+# get performance data verify mode
+@app.route("/vperform/<worker>", methods=['GET'])
+def get_vperform_data(worker):
+    wrkrList = []
+    for name,id in wrkr_id.items():
+        qryList = Image.query.filter((Image.verify_worker==id)&(Image.verified!=0)).order_by(Image.id)
+        wrkr ={}
+        count =0
+        prevtime =datetime.datetime(1973,1,1,1,1,1)
+        currtime =0
+        tottime =0
+        for imgRec in qryList:
+            count +=1
+            currtime = imgRec.verify_dtime 
+            # less than 0 or greater than 10 mins
+            # reset time
+            if (currtime - prevtime).total_seconds() > 10*60 or\
+               0 > (currtime - prevtime).total_seconds():
+               #reset prev time
+               prevtime = imgRec.verify_dtime 
+               currtime = imgRec.verify_dtime 
+   
+            #print(currtime, prevtime)
+            tottime += (currtime - prevtime ).total_seconds()
+            prevtime = imgRec.verify_dtime 
+       
+        #print(datetime.timedelta(seconds=tottime)) 
+        if name == worker:
+          wrkr['Name'] = name
+          wrkr['count'] = count
+          wrkr['seconds'] = tottime
+          wrkrList.append(wrkr)
+          break
+    
+    return jsonify(wrkrList)
 # for debugging incoming request
 '''
 @app.before_request

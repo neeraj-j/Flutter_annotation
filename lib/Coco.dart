@@ -225,7 +225,9 @@ Future<Uint8List> getImage(int idx) async {
 // Get performance data
 Future <List> getData() async{
   String host = "http://"+user+":9000";
-  final response =  await http.get(host+'/perform/$workerId');
+  String cmd;
+  mode == 0?cmd = "eperform":cmd = "vperform";
+  final response =  await http.get(host+'/$cmd/$workerId');
   if (response.statusCode == 200) {
     //print( jsonDecode(response.body));
     return jsonDecode(response.body);

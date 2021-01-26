@@ -4,6 +4,7 @@ import 'Common.dart';
 import 'Globals.dart';
 import 'dart:typed_data';
 import 'Coco.dart';
+import 'package:flutter/rendering.dart';
 // Implements overlay class for dots
 // This key is used for image widget
 
@@ -68,7 +69,14 @@ class _ImgContainerState extends State<ImgContainer> {
       child: FutureBuilder<Uint8List>(
           future: getImage(widget.imgIdx),
           builder: (context, snapshot) => snapshot.hasData
-              ? GestureDetector(
+              ? MouseRegion(
+				  // or use onHover to paint cross hair for bbox
+				  cursor: SystemMouseCursors.basic,    //precise,
+				  //onHover:
+				  child: GestureDetector(
+					onTapDown: (details){
+				       //print(details);	
+					},
                   // Pan the image
                   onPanUpdate: (details) {
                     //double x = (details.delta.dx) * (2.0/currImgWidth );
@@ -81,7 +89,7 @@ class _ImgContainerState extends State<ImgContainer> {
                       scale: widget.scale,
                       fit: BoxFit.none,
                       alignment: widget.align),
-                )
+                ),)
               : CircularProgressIndicator()),
     );
   }

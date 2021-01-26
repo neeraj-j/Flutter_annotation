@@ -98,7 +98,7 @@ import 'Coco.dart';
       _overlayItem,
     );
   //print(getAbsPosition(icKey).center);
-}
+  }
 
   // Load new image and annnotations
   // click on image list and next button
@@ -128,6 +128,7 @@ import 'Coco.dart';
 	//print("Imscale: $imgScale");
     loadAnns(context, fidx);
     currImgIdx = fidx;
+	getImage(currImgIdx+10);
   }
 
   // Load annotation from coco file
