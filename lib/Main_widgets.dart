@@ -63,6 +63,8 @@ Widget menuColumn(context, renderImg, _pickFiles, remImgs, refresh) {
           Divider(indent: 1, thickness: 2, height: 2),
           iconButtonBlue(Icons.crop_square_outlined,
               () => {showOverlayBox(context)}, "Insert Bounding Box"),
+          iconButtonBlue(Icons.gesture_outlined,
+              () => {newOverlaySeg()}, "New Segment"),
           Divider(indent: 2, thickness: 2, height: 2),
           iconButtonBlue(Icons.skip_next, () async {
             // Todo: check for index overflow
@@ -72,7 +74,6 @@ Widget menuColumn(context, renderImg, _pickFiles, remImgs, refresh) {
             } else {
               toast("Last File");
             }
-
             //ui.Image img =
           }, "Next Image"),
           iconButtonBlue(Icons.skip_previous, () async {

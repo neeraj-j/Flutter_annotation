@@ -10,6 +10,16 @@ void removeOverlayKpEntry(int boxIdx, int kpIdx) {
   boxList[boxIdx]["kpKeys"][kpIdx] = null;
 }
 
+// Remove overlay segment entry
+void removeOverlaySegEntry(int segIdx, GlobalKey icKey) {
+  for(var i=0; i<segList[segIdx]["segOvrls"].length; i++){
+	if ( segList[segIdx]["segKeys"][i] != icKey){ continue;}
+	segList[segIdx]["segOvrls"][i].remove();
+	segList[segIdx]["segOvrls"][i] = null;
+	segList[segIdx]["segKeys"][i] = null;
+  }
+}
+
 // Remove overlay Box entry and enclosed keypoints
 void removeOverlayBoxEntry(int boxIdx) {
   // remove 2 points of box
@@ -49,8 +59,19 @@ void purgeOverlayEntry() {
       boxList[k]["kpKeys"][i] = null;
     }
   }
+
+  for (var k=0;k<segList.length;k++){
+	for (var i=0; i<segList[k]["segOvrls"].length; i++){
+      if (segList[k]["segOvrls"][i] == null) continue;
+      segList[k]["segOvrls"][i].remove();
+      segList[k]["segOvrls"][i] = null;
+      segList[k]["segKeys"][i] = null;
+		
+	}
+  }
   // remove boxList entries
   boxList.clear();
+  segList.clear();
 }
 
 // This funtion willl return relative position of widget
@@ -93,9 +114,15 @@ Offset getBoxCoords(int boxIdx, int ptIdx) {
   return getAbsPosition(key).center;
 }
 
-// Save keypoints. Todo: save to file
-// Todo: take scale of image into consideration
-void saveKp(double scale) {}
+// get keypoint coordinates on webpage for painting
+Offset getSegCoords(int segIdx, int icidx) {
+  GlobalKey key = segList[segIdx]["segKeys"][icidx];
+  if (key == null) {
+    return null;
+  }
+  // get relative position on screen for painting
+  return getAbsPosition(key).center;
+}
 
 // Draw skeleton lines between keypoints
 class DrawSkeleton extends CustomPainter {
@@ -159,6 +186,39 @@ class DrawRect extends CustomPainter {
     }
     Rect _rect = Rect.fromLTRB(top.dx, top.dy, bot.dx, bot.dy);
     canvas.drawRect(_rect, paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) {
+    return true;
+  }
+}
+
+// Draw polygon lines between keypoints
+class DrawPolygon extends CustomPainter {
+  int segIdx;
+  // Constructor
+  DrawPolygon(this.segIdx);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+	final opacity = 0.1;
+    var paint = Paint()
+      ..color = Color.fromRGBO(0xFF, 0xF5, 0x9D, opacity)
+      ..strokeWidth = 2
+      ..strokeCap = StrokeCap.round;
+
+	List<Offset> pts = [];
+    for (var i = 0; i < segList[segIdx]["segKeys"].length; i++) {
+      Offset pt = getSegCoords(segIdx, i);
+      if (pt == null) {
+        continue;
+      }
+	  pts.add(pt);
+    }
+    Path path = Path();
+    path.addPolygon(pts,true);
+    canvas.drawPath(path, paint);
   }
 
   @override

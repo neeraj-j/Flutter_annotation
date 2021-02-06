@@ -98,7 +98,24 @@ import 'Coco.dart';
       _overlayItem,
     );
   //print(getAbsPosition(icKey).center);
+}
+
+  void newOverlaySeg({annId=-1}){
+    var _overlayMap = {
+      "segOvrls": new List<OverlayEntry>.empty(growable: true), //list of box icons
+      "segKeys": new List<GlobalKey>.empty(growable: true), //icon and bottom point
+	  "changed": List<bool>.filled(1,false),
+	  "annId": List<int>.filled(1,0),
+    };
+  
+    int _segIdx = segList.length;
+    currSegIdx = _segIdx;
+  
+    _overlayMap["annId"][0] = annId;
+    segList.add(_overlayMap);
   }
+
+
 
   // Load new image and annnotations
   // click on image list and next button

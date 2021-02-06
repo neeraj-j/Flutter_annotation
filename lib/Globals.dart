@@ -24,8 +24,13 @@ int currBoxIdx = -1; // idx of selected box
 // to maintain overlay entries
 List<Map> boxList = [];
 
+int currSegIdx = -1; // idx of selected box
+// to maintain overlay entries
+List<Map> segList = [];
+
 double bbIconSize = 15; // icon size of box
 double kpIconSize = 15; // icon size of keypoint
+double segIconSize = 10; // icon size of keypoint
 
 String workerId = "";  // used fro getting the coco file
 

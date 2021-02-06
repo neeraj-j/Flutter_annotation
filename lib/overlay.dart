@@ -74,8 +74,10 @@ class _ImgContainerState extends State<ImgContainer> {
 				  cursor: SystemMouseCursors.basic,    //precise,
 				  //onHover:
 				  child: GestureDetector(
-					onTapDown: (details){
-				       //print(details);	
+					onTapUp: (details){
+				      // print("${details.localPosition.dx}, ${details.localPosition.dy}");	
+					  dirtyBit=true;
+					  addOverlaySeg(context, details.localPosition.dx, details.localPosition.dy) ;
 					},
                   // Pan the image
                   onPanUpdate: (details) {
@@ -93,6 +95,44 @@ class _ImgContainerState extends State<ImgContainer> {
               : CircularProgressIndicator()),
     );
   }
+
+  // add points to segmentation overlay at the end
+  void addOverlaySeg(BuildContext context, dx, dy) async {
+    if (currSegIdx == -1) {
+	  toast("Error: No Segment Created");
+      return;
+    }
+	double icSize = segIconSize*imgScale; // for box icon of 10
+	double _w=files[currImgIdx]['width'] ;
+	double _h=files[currImgIdx]['height'] ;
+	Alignment align =
+		Alignment((dx - (_w / 2)) * 2 / (_w-icSize), (dy - (_h / 2)) * 2 / (_h-icSize));
+
+    OverlayEntry _overlayItem;
+    GlobalKey icKey = GlobalKey(); // Icon key to exrect KP location from icon
+    OverlayState overlayState = Overlay.of(context);
+    int _segIdx = currSegIdx; // Do not pass curBoxIdx directly to overlayKP
+	int icidx = segList[currSegIdx]["segOvrls"].length;
+    // Generate the overlay entry
+    _overlayItem = OverlayEntry(builder: (BuildContext context) {
+      return OverlaySeg(
+          //   pContext: context,
+          segIdx: _segIdx,
+		  icIdx: icidx,
+          iconKey: icKey,
+          sAlign: align);
+    });
+
+    // Overlay items
+    segList[currSegIdx]["segOvrls"].add(_overlayItem);
+    // add icon key to extract position of keypoint
+    segList[currSegIdx]["segKeys"].add(icKey);
+    // Insert the overlayEntry on the screen
+    overlayState.insert(
+      _overlayItem,
+    );
+  }
+
 }
 // ------ Image  container End -------------------//
 
@@ -287,6 +327,137 @@ class _OverlayBoxState extends State<OverlayBox> {
 }
 
 // ------ Box overlay container End -------------------//
+
+// ------ segment overlay container Start -------------------//
+class OverlaySeg extends StatefulWidget {
+  OverlaySeg({
+    Key key,
+    //@required this.pContext,
+    @required this.segIdx,
+    @required this.icIdx,
+    @required this.iconKey,
+    @required this.sAlign,
+  }) : super(key: key);
+
+  //final BuildContext pContext;
+  final int segIdx;
+  final int icIdx;
+  final GlobalKey iconKey;
+  final Alignment sAlign;
+
+  @override
+  _OverlaySegState createState() => _OverlaySegState();
+}
+
+class _OverlaySegState extends State<OverlaySeg> {
+  //Alignment _dragAlignment;
+  Alignment _dragAlignment;
+  @override
+  void initState() {
+    super.initState();
+    _dragAlignment = widget.sAlign;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Rect overlayPos = getPosition(imgKey);
+    Color clr;
+	if (widget.icIdx ==0){
+	  clr = Colors.redAccent;
+	}else if (widget.icIdx == segList[widget.segIdx]["segKeys"].length-1){
+	  clr = Colors.greenAccent;
+	}else{
+	  clr = Colors.white;
+	}
+
+    return CustomSingleChildLayout(
+      delegate: _OverlayableContainerLayout(overlayPos),
+      child: Container(
+          child: GestureDetector(
+        // Remove point on double tap
+		onDoubleTap: (){
+			removeOverlaySegEntry(widget.segIdx, widget.iconKey);
+		} ,
+		onSecondaryTapUp: (details){
+			dirtyBit=true;
+			// insert new point after   this
+			insertOverlaySeg(context, widget.sAlign+Alignment(0.05,0.05), widget.iconKey) ;
+		},
+        onPanUpdate: (details) {
+          setState(() {
+            double dx = details.delta.dx / (overlayPos.width / 2);
+            double dy = details.delta.dy / (overlayPos.height / 2);
+            _dragAlignment += Alignment(dx, dy);
+            double x = _dragAlignment.x;
+            double y = _dragAlignment.y;
+            // clip the avalues to -1 to 1
+            if (x > 1.0) {
+              _dragAlignment = Alignment(1.0, y);
+            } else if (x < -1.0) {
+              _dragAlignment = Alignment(-1.0, y);
+            }
+            if (y > 1.0) {
+              _dragAlignment = Alignment(x, 1.0);
+            } else if (y < -1.0) {
+              _dragAlignment = Alignment(x, -1.0);
+            }
+          });
+          dirtyBit = true;
+          segList[widget.segIdx]["changed"][0] = true;
+        },
+        child: CustomPaint(
+          foregroundPainter: DrawPolygon(widget.segIdx),
+          willChange: true,
+          child: Align(
+              alignment: _dragAlignment,
+                child: Icon(Icons.circle,
+                    key: widget.iconKey, size: segIconSize, color: clr),
+              ),
+        ),
+      ) //Gesture
+          ),
+    ); // Container
+  }
+
+  // insert points to segmentation overlay in the middie 
+  void insertOverlaySeg(BuildContext context, Alignment align, GlobalKey prevKey ) async {
+    if (currSegIdx == -1) {
+	  toast("Error: No Segment Created");
+      return;
+    }
+	double icSize = segIconSize*imgScale; // for box icon of 10
+	double _w=files[currImgIdx]['width'] ;
+	double _h=files[currImgIdx]['height'] ;
+
+    OverlayEntry _overlayItem;
+    GlobalKey icKey = GlobalKey(); // Icon key to exrect KP location from icon
+    OverlayState overlayState = Overlay.of(context);
+    int _segIdx = currSegIdx; // Do not pass curBoxIdx directly to overlayKP
+	int icidx = segList[currSegIdx]["segOvrls"].length;
+    // Generate the overlay entry
+    _overlayItem = OverlayEntry(builder: (BuildContext context) {
+      return OverlaySeg(
+          //   pContext: context,
+          segIdx: _segIdx,
+		  icIdx: icidx,
+          iconKey: icKey,
+          sAlign: align);
+    });
+	// insertin the middle of the list for path draw
+	for(var i=0; i<segList[currSegIdx]["segOvrls"].length; i++){
+		if ( segList[currSegIdx]["segKeys"][i] != prevKey){ continue;}
+		// Overlay items
+		segList[currSegIdx]["segOvrls"].insert(i+1, _overlayItem);
+		// add icon key to extract position of keypoint
+		segList[currSegIdx]["segKeys"].insert(i+1, icKey);
+	}
+    // Insert the overlayEntry on the screen
+    overlayState.insert(
+      _overlayItem,
+    );
+  }
+}
+// ------ Keypoint overlay container End -------------------//
 // ------ Statistics overlay container Start -------------------//
 class OverlayStats extends StatefulWidget {
   OverlayStats({
