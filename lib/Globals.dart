@@ -7,6 +7,7 @@ final GlobalKey imgKey = GlobalKey();  // sizedBox key
 final GlobalKey imgColKey = GlobalKey(); // Image parentbox key
 // Image file list with height and width
 List files = [];
+ValueNotifier<int> fileNotifier = ValueNotifier(0);
 
 Color brightCyan = Colors.cyanAccent; // On select
 Color dullCyan = Colors.cyanAccent[700]; // On de select
@@ -17,7 +18,8 @@ double imgScale = 1.0;
 double orgImgWidth;
 double orgImgHeight;
 // Index of displayed image
-int currImgIdx=0;
+//int currImgIdx=0;
+ValueNotifier<int> currImgIdx = ValueNotifier(-1);
 
 bool dirtyBit= false; // if annotation has changed
 int currBoxIdx = -1; // idx of selected box
@@ -35,6 +37,7 @@ double segIconSize = 10; // icon size of keypoint
 String workerId = "";  // used fro getting the coco file
 
 OverlayEntry statsOverlayEntry;
+OverlayState gOverlayState;
 
 // Skeleton
 List<List<int>> skeleton = [

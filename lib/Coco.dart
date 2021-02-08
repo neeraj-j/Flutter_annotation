@@ -55,7 +55,7 @@ Future<void> writeCocoFile() async {
   dirtyBit = false;
   String host = "http://"+user+":9000";
   // update flies annotation record
-  List annots = updateCoco(currImgIdx);
+  List annots = updateCoco(currImgIdx.value);
   if (annots.isEmpty) {return;}
   String command;
   if (mode ==0){

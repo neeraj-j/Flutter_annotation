@@ -35,8 +35,9 @@ var boxText = {
 
 // ------ Image  container Start -------------------//
 
-class ImgContainer extends StatefulWidget {
-  ImgContainer({
+//class ImgContainer extends StatefulWidget {
+class ImgContainer extends StatelessWidget {
+  const ImgContainer({
     Key key,
     @required this.imgIdx,
     @required this.winWidth,
@@ -52,22 +53,14 @@ class ImgContainer extends StatefulWidget {
   final double winHeight;
 
   @override
-  _ImgContainerState createState() => _ImgContainerState();
-}
-
-class _ImgContainerState extends State<ImgContainer> {
-  BuildContext myContext;
-
-  @override
   Widget build(BuildContext context) {
-    myContext = context;
     return SizedBox(
       key: imgKey,
-      width: widget.winWidth,
-      height: widget.winHeight,
+      width: winWidth,
+      height: winHeight,
       // No gesture detector for image
       child: FutureBuilder<Uint8List>(
-          future: getImage(widget.imgIdx),
+          future: getImage(imgIdx),
           builder: (context, snapshot) => snapshot.hasData
               ? MouseRegion(
 				  // or use onHover to paint cross hair for bbox
@@ -88,9 +81,9 @@ class _ImgContainerState extends State<ImgContainer> {
                     // renderImg();
                   },
                   child: Image.memory(snapshot.data,
-                      scale: widget.scale,
+                      scale: scale,
                       fit: BoxFit.none,
-                      alignment: widget.align),
+                      alignment: align),
                 ),)
               : CircularProgressIndicator()),
     );
@@ -103,14 +96,13 @@ class _ImgContainerState extends State<ImgContainer> {
       return;
     }
 	double icSize = segIconSize*imgScale; // for box icon of 10
-	double _w=files[currImgIdx]['width'] ;
-	double _h=files[currImgIdx]['height'] ;
+	double _w=files[currImgIdx.value]['width'] / imgScale ;
+	double _h=files[currImgIdx.value]['height'] / imgScale ;
 	Alignment align =
 		Alignment((dx - (_w / 2)) * 2 / (_w-icSize), (dy - (_h / 2)) * 2 / (_h-icSize));
 
     OverlayEntry _overlayItem;
     GlobalKey icKey = GlobalKey(); // Icon key to exrect KP location from icon
-    OverlayState overlayState = Overlay.of(context);
     int _segIdx = currSegIdx; // Do not pass curBoxIdx directly to overlayKP
 	int icidx = segList[currSegIdx]["segOvrls"].length;
     // Generate the overlay entry
@@ -127,8 +119,9 @@ class _ImgContainerState extends State<ImgContainer> {
     segList[currSegIdx]["segOvrls"].add(_overlayItem);
     // add icon key to extract position of keypoint
     segList[currSegIdx]["segKeys"].add(icKey);
+    segList[currSegIdx]["kPos"].add(Offset(dx,dy));
     // Insert the overlayEntry on the screen
-    overlayState.insert(
+    gOverlayState.insert(
       _overlayItem,
     );
   }
@@ -138,7 +131,7 @@ class _ImgContainerState extends State<ImgContainer> {
 
 // ------ Keypoint overlay container Start -------------------//
 class OverlayKP extends StatefulWidget {
-  OverlayKP({
+  const OverlayKP({
     Key key,
     //@required this.pContext,
     @required this.boxIdx,
@@ -170,7 +163,7 @@ class _OverlayKPState extends State<OverlayKP> {
   Widget build(BuildContext context) {
     Rect overlayPos = getPosition(imgKey);
     Color clr = (widget.kpIdx % 2 == 0) ? Colors.green[400] : Colors.red[400];
-
+	//print(widget.kpIdx);
     return CustomSingleChildLayout(
       delegate: _OverlayableContainerLayout(overlayPos),
       child: Container(
@@ -205,7 +198,7 @@ class _OverlayKPState extends State<OverlayKP> {
           boxList[widget.boxIdx]["changed"][1] = true;
         },
         child: CustomPaint(
-          foregroundPainter: DrawSkeleton(widget.boxIdx),
+          foregroundPainter: DrawSkeleton(widget.boxIdx, widget.kpIdx),
           willChange: true,
           child: Align(
               //alignment: _dragAlignment,
@@ -225,7 +218,7 @@ class _OverlayKPState extends State<OverlayKP> {
 
 // ------ Box overlay container Start -------------------//
 class OverlayBox extends StatefulWidget {
-  OverlayBox({
+  const OverlayBox({
     Key key,
     // @required this.pContext,
     @required this.boxIdx,
@@ -238,7 +231,7 @@ class OverlayBox extends StatefulWidget {
   final int boxIdx;
   final int ptIdx;
   final GlobalKey iconKey;
-  Alignment align;
+  final Alignment align;
 
   @override
   _OverlayBoxState createState() => _OverlayBoxState();
@@ -257,6 +250,7 @@ class _OverlayBoxState extends State<OverlayBox> {
   @override
   Widget build(BuildContext context) {
     Rect overlayPos = getPosition(imgKey);
+	//print(widget.ptIdx);
     return CustomSingleChildLayout(
       delegate: _OverlayableContainerLayout(overlayPos),
       child: Container(
@@ -369,7 +363,6 @@ class _OverlaySegState extends State<OverlaySeg> {
 	}else{
 	  clr = Colors.white;
 	}
-
     return CustomSingleChildLayout(
       delegate: _OverlayableContainerLayout(overlayPos),
       child: Container(
@@ -406,7 +399,7 @@ class _OverlaySegState extends State<OverlaySeg> {
           segList[widget.segIdx]["changed"][0] = true;
         },
         child: CustomPaint(
-          foregroundPainter: DrawPolygon(widget.segIdx),
+          foregroundPainter: DrawPolygon(widget.segIdx, widget.icIdx),
           willChange: true,
           child: Align(
               alignment: _dragAlignment,
@@ -426,8 +419,8 @@ class _OverlaySegState extends State<OverlaySeg> {
       return;
     }
 	double icSize = segIconSize*imgScale; // for box icon of 10
-	double _w=files[currImgIdx]['width'] ;
-	double _h=files[currImgIdx]['height'] ;
+	double _w=files[currImgIdx.value]['width']/imgScale ;
+	double _h=files[currImgIdx.value]['height']/imgScale ;
 
     OverlayEntry _overlayItem;
     GlobalKey icKey = GlobalKey(); // Icon key to exrect KP location from icon
@@ -450,6 +443,7 @@ class _OverlaySegState extends State<OverlaySeg> {
 		segList[currSegIdx]["segOvrls"].insert(i+1, _overlayItem);
 		// add icon key to extract position of keypoint
 		segList[currSegIdx]["segKeys"].insert(i+1, icKey);
+		segList[currSegIdx]["kPos"].insert(i+1, Offset(align.x*_w/2+_w/2,align.y*_h/2+_h/2));
 	}
     // Insert the overlayEntry on the screen
     overlayState.insert(

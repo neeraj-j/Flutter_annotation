@@ -127,8 +127,9 @@ Offset getSegCoords(int segIdx, int icidx) {
 // Draw skeleton lines between keypoints
 class DrawSkeleton extends CustomPainter {
   int boxIdx;
+  int kpIdx;
   // Constructor
-  DrawSkeleton(this.boxIdx);
+  DrawSkeleton(this.boxIdx, this.kpIdx);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -140,11 +141,17 @@ class DrawSkeleton extends CustomPainter {
       print("Error: -ve");
       return;
     }
+    boxList[boxIdx]["kpPos"][kpIdx] = getKpCoords(boxIdx, kpIdx);
     for (var i = 0; i < skeleton.length; i++) {
       List<int> keypair = skeleton[i];
+	  if (!keypair.contains(kpIdx)){
+		continue;
+	  }
       // skeleton is from 1-17 so subtract 1
-      Offset kp1 = getKpCoords(boxIdx, keypair[0] - 1);
-      Offset kp2 = getKpCoords(boxIdx, keypair[1] - 1);
+      //Offset kp1 = getKpCoords(boxIdx, keypair[0] - 1);
+      //Offset kp2 = getKpCoords(boxIdx, keypair[1] - 1);
+      Offset kp1 = boxList[boxIdx]["kpPos"][keypair[0]-1];
+      Offset kp2 = boxList[boxIdx]["kpPos"][keypair[1]-1];
       if (kp1 == null || kp2 == null) {
         continue;
       }
@@ -155,7 +162,7 @@ class DrawSkeleton extends CustomPainter {
 
   @override
   bool shouldRepaint(CustomPainter oldDelegate) {
-    return true;
+    return false;
   }
 }
 
@@ -190,15 +197,16 @@ class DrawRect extends CustomPainter {
 
   @override
   bool shouldRepaint(CustomPainter oldDelegate) {
-    return true;
+    return false;
   }
 }
 
 // Draw polygon lines between keypoints
 class DrawPolygon extends CustomPainter {
   int segIdx;
+  int icIdx;
   // Constructor
-  DrawPolygon(this.segIdx);
+  DrawPolygon(this.segIdx, this.icIdx);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -208,9 +216,11 @@ class DrawPolygon extends CustomPainter {
       ..strokeWidth = 2
       ..strokeCap = StrokeCap.round;
 
+    segList[segIdx]["kPos"][icIdx] = getSegCoords(segIdx, icIdx);
 	List<Offset> pts = [];
     for (var i = 0; i < segList[segIdx]["segKeys"].length; i++) {
-      Offset pt = getSegCoords(segIdx, i);
+      //Offset pt = getSegCoords(segIdx, i);
+      Offset pt = segList[segIdx]["kPos"][i];
       if (pt == null) {
         continue;
       }
@@ -228,6 +238,7 @@ class DrawPolygon extends CustomPainter {
 }
 
 Widget iconButtonBlue(IconData name, Function f, String msg) {
+  var status = true;
   return Tooltip(
     message: msg,
     child: IconButton(

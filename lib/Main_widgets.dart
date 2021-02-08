@@ -6,6 +6,7 @@ import 'Globals.dart';
 import 'Coco.dart';
 import 'MainLogic.dart';
 import 'dart:typed_data';
+import 'overlay.dart';
 
 var labelItems = {
   "Nose": 0,
@@ -33,9 +34,32 @@ double _imgListWidth = 160;
 int _fileCount = 1;
 var _now = new DateTime.now();
 
-Widget menuColumn(context, renderImg, _pickFiles, remImgs, refresh) {
+
+class MenuColumn extends StatelessWidget {
+
   List<IconData> icos = [Icons.save, Icons.verified_user];
   List<String> strs = ["Save Image", "Verify Image"];
+
+  void _pickFiles() async {
+	files = await getFileList();
+	if (files.isEmpty){
+	  toast("Data not found");
+	}
+	fileNotifier.value = files.length;
+  }
+  
+  void _remImgs(int idx) async {
+	if (idx == -1){ 
+		files.removeAt(currImgIdx.value);
+	}else{ // remove range
+	  files.removeRange(0, idx);
+	}
+	fileNotifier.value = files.length;
+  }
+
+
+ Widget build(BuildContext context) {
+  bool status=true;
   return SizedBox(
       width: _menuWidth,
       height: MediaQuery.of(context).size.height,
@@ -45,7 +69,7 @@ Widget menuColumn(context, renderImg, _pickFiles, remImgs, refresh) {
         children: [
           iconButtonBlue(
 			  // oly if files is empty
-              Icons.login_outlined, () => {files.isEmpty?loginForm(context, refresh):null}, "Login"),
+              Icons.login_outlined, () => {files.isEmpty?loginForm(context):null}, "Login"),
           iconButtonBlue(Icons.folder_open, () {
             _pickFiles();
           }, "Load Data"),
@@ -53,9 +77,9 @@ Widget menuColumn(context, renderImg, _pickFiles, remImgs, refresh) {
           //    !coco.isEmpty ? null : () => {readCocoFile(_pickFiles)}, "Load Coco File"),
           iconButtonBlue(icos[mode], () async {
               writeCocoFile();
-              if (currImgIdx + 1 < files.length) {
+              if (currImgIdx.value + 1 < files.length) {
                 _fileCount++; // count to show
-                loadImage(currImgIdx + 1, context, renderImg);
+                loadImage(currImgIdx.value + 1, context);
               } else {
                 toast("Last File");
               }
@@ -63,69 +87,104 @@ Widget menuColumn(context, renderImg, _pickFiles, remImgs, refresh) {
           Divider(indent: 1, thickness: 2, height: 2),
           iconButtonBlue(Icons.crop_square_outlined,
               () => {showOverlayBox(context)}, "Insert Bounding Box"),
-          iconButtonBlue(Icons.gesture_outlined,
-              () => {newOverlaySeg()}, "New Segment"),
+		  // Todo: uncomment for segmentation
+          //iconButtonBlue(Icons.gesture_outlined,
+          //    () => {newOverlaySeg()}, "New Segment"),
           Divider(indent: 2, thickness: 2, height: 2),
           iconButtonBlue(Icons.skip_next, () async {
             // Todo: check for index overflow
-            if (currImgIdx + 1 < files.length) {
+            if (currImgIdx.value + 1 < files.length) {
               // dont increse currImgidx here
-              loadImage(currImgIdx + 1, context, renderImg);
+              loadImage(currImgIdx.value + 1, context);
             } else {
               toast("Last File");
             }
             //ui.Image img =
           }, "Next Image"),
           iconButtonBlue(Icons.skip_previous, () async {
-            if (currImgIdx - 1 >= 0) {
-              loadImage(currImgIdx - 1, context, renderImg);
+            if (currImgIdx.value - 1 >= 0) {
+              loadImage(currImgIdx.value - 1, context);
             } else {
               toast("First File");
             }
             //ui.Image img =
           }, "Previous Image"),
           iconButtonBlue(Icons.call_missed_outgoing,
-              () => gotoForm(context, remImgs), "Goto Image"),
+              () => gotoForm(context, _remImgs), "Goto Image"),
           Divider(indent: 2, thickness: 2, height: 40),
           /*
           iconButtonBlack(Icons.zoom_in_rounded, () {
             imgScale -= 0.1;
-            renderImg(currImgIdx);
+            renderImg(currImgIdx.value);
           } , "Zoom In"),
           iconButtonBlack(Icons.zoom_out_rounded, () {
             imgScale += 0.1;
-            renderImg(currImgIdx);
+            renderImg(currImgIdx.value);
           }, "Zoom Out"), */
           iconButtonBlack(Icons.assessment, () {
             showOverlayStats(context);
           }, "Performance"),
           Divider(indent: 2, thickness: 2, height: 40),
-          iconButtonBlack(Icons.delete, () {
-            //delete from server and coco list
-            deleteImage(files[currImgIdx]['name']);
-            // delete from file list
-            remImgs(-1);
-            loadImage(currImgIdx, context, renderImg);
-            _fileCount++;
-          }, "Delete Image"),
+		  // Delete button disbale too fast
+		  Tooltip(
+			message: "Delete Image",
+			child: IconButton(
+			  icon: Icon(Icons.delete, color: Colors.blue[400]),
+			  onPressed: (){
+				if (!status){
+					return;
+				}
+				status = false;
+				//delete from server and coco list
+				deleteImage(files[currImgIdx.value]['name']);
+				// delete from file list
+				_remImgs(-1);
+				loadImage(currImgIdx.value, context);
+				// force repaint image
+				currImgIdx.value++;
+				currImgIdx.value--;
+				_fileCount++;
+				status = true;
+			  },
+			  alignment: Alignment.centerRight,
+			  disabledColor: Colors.grey,
+			  splashColor: Colors.blue[900],
+			  hoverColor: Colors.yellowAccent[100],
+			),
+		  ),
           Divider(indent: 2, thickness: 2, height: 40),
         ],
       ));
+
+	} //build
 }
 
-Widget imgColumn(context, _currentImage) {
-  return Expanded(
+//Widget imgColumn(context, _currentImage) {
+class ImgColumn extends StatelessWidget {
+
+ Widget build(BuildContext context) {
+  return ValueListenableBuilder(
+	valueListenable: currImgIdx,
+	builder: (context, imgIdx, _){ 
+	  return Expanded(
     key: imgColKey,
     child: Column(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Center image
-        _currentImage,
-        fileName(_currentImage.imgIdx),
+         ImgContainer(
+          imgIdx: imgIdx,
+          winWidth: null,
+          winHeight: null,
+          scale: imgScale,
+          align: Alignment.center),
+        fileName(imgIdx),
       ],
     ),
   );
+	});
+}
 }
 
 Widget labelList(context, _scrollcontroller) {
@@ -162,7 +221,7 @@ Widget labelList(context, _scrollcontroller) {
                                       : Colors.red[400]),
                               title: Text(data),
                               onTap: () {
-                                showOverlayKeypoint(context, labelItems[data]);
+                                showOverlayKeypoint(context, labelItems[data], currImgIdx.value);
                               })))
                       .toList(),
                 ),
@@ -173,8 +232,14 @@ Widget labelList(context, _scrollcontroller) {
   );
 }
 
-Widget imgList(context, renderImg) {
-  return Scrollbar(
+//Widget imgList(context, renderImg) {
+class ImgList extends StatelessWidget {
+
+ Widget build(BuildContext context) {
+  return ValueListenableBuilder(
+	valueListenable: fileNotifier,
+	builder: (context, imgIdx, _){ 
+	 return Scrollbar(
     // scroller is giving error
     //controller: _scrollcontroller,
     //isAlwaysShown: true,
@@ -195,12 +260,11 @@ Widget imgList(context, renderImg) {
                         builder: (context, snapshot) => snapshot.hasData
                             ? GestureDetector(
                                 onTap: () {
-                                  loadImage(fidx, context, renderImg);
+                                  loadImage(fidx, context);
                                 },
                                 child: SizedBox(
                                   width: 150,
                                   height: 75,
-                                  //child: RawImage(
                                   child: Image.memory(snapshot.data),
                                 ),
                               )
@@ -229,7 +293,7 @@ Widget imgList(context, renderImg) {
               ),
       ),
     ),
-  );
+  );});}
 }
 
 //----------- supporting functions ---------------------//
@@ -311,7 +375,7 @@ void gotoForm(context, remImgs) {
       });
 }
 
-void loginForm(context, refresh) {
+void loginForm(context) {
   showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -369,7 +433,7 @@ void loginForm(context, refresh) {
                                 value: 0,
                                 groupValue: mode,
                                 onChanged: (val) {
-								  refresh();
+								  //refresh();
                                   setState(() {
                                     mode = val;
                                   });
@@ -385,7 +449,7 @@ void loginForm(context, refresh) {
                                 value: 1,
                                 groupValue: mode,
                                 onChanged: (val) {
-								  refresh();
+								  //refresh();
                                   setState(() {
                                     mode = val;
                                   });

@@ -14,14 +14,15 @@ import 'Coco.dart';
     OverlayEntry _overlayTopIcon;
     OverlayEntry _overlayBotIcon;
     OverlayState overlayState = Overlay.of(context);
-    GlobalKey topKey = GlobalKey(); // Icon key to exrect top location from icon
-    GlobalKey botKey =
+    final GlobalKey topKey = GlobalKey(); // Icon key to exrect top location from icon
+    final GlobalKey botKey =
         GlobalKey(); // Icon key to exrect bottom location from icon
     var _overlayMap = {
       "boxOvrls": new List<OverlayEntry>.filled(2, null), //list of box icons
       "boxKeys": new List<GlobalKey>.filled(2, null), //icon and bottom point
       "kpKeys": new List<GlobalKey>.filled(17, null), //Top and bottom point
       "kpOvrls": new List<OverlayEntry>.filled(17, null),
+      "kpPos": new List<Offset>.filled(17, null),
 	  "changed": List<bool>.filled(2,false),
 	  "annId": List<int>.filled(1,0),
       // Todo: add segmentation also
@@ -57,7 +58,7 @@ import 'Coco.dart';
     // Todo: append currentBoxIdx to ptIdx
     // add icon key to extract position of keypoint
     // Insert the overlayEntry on the screen
-    overlayState.insertAll(
+    gOverlayState.insertAll(
       [
         _overlayBotIcon,
         _overlayTopIcon,
@@ -66,7 +67,7 @@ import 'Coco.dart';
   }
 
   // Implements Keypoint overlays
-  void showOverlayKeypoint(BuildContext context, int kpIdx,
+  void showOverlayKeypoint(BuildContext context, int kpIdx, fidx,
       {align: Alignment.center}) async {
     if (currBoxIdx == -1) {
 	  toast("Error: No Box Selected ");
@@ -89,12 +90,15 @@ import 'Coco.dart';
           kAlign: align);
     });
 
+	double _w=files[fidx]['width']/imgScale ;
+	double _h=files[fidx]['height']/imgScale ;
     // Overlay items
     boxList[currBoxIdx]["kpOvrls"][kpIdx] = _overlayItem;
+    boxList[currBoxIdx]["kpPos"][kpIdx] = Offset(align.x*_w/2+_w/2,align.y*_h/2+_h/2);
     // add icon key to extract position of keypoint
     boxList[currBoxIdx]["kpKeys"][kpIdx] = icKey;
     // Insert the overlayEntry on the screen
-    overlayState.insert(
+    gOverlayState.insert(
       _overlayItem,
     );
   //print(getAbsPosition(icKey).center);
@@ -104,6 +108,7 @@ import 'Coco.dart';
     var _overlayMap = {
       "segOvrls": new List<OverlayEntry>.empty(growable: true), //list of box icons
       "segKeys": new List<GlobalKey>.empty(growable: true), //icon and bottom point
+	  "kPos": new List<Offset>.empty(growable:true),
 	  "changed": List<bool>.filled(1,false),
 	  "annId": List<int>.filled(1,0),
     };
@@ -119,13 +124,13 @@ import 'Coco.dart';
 
   // Load new image and annnotations
   // click on image list and next button
-  void loadImage(int fidx, BuildContext context, renderImg) {
+  void loadImage(int fidx, BuildContext context) {
     Rect imgWindow = getPosition(imgColKey);
     double _maxHeight =  imgWindow.height;
     double _maxWidth = imgWindow.width; 
     if (dirtyBit) {
       // Alert box update/discard
-      showMyDialog(fidx, context, renderImg);
+      showMyDialog(fidx, context);
       return;
     }
     orgImgWidth = files[fidx]["width"];
@@ -138,14 +143,12 @@ import 'Coco.dart';
     //Todo: calculate cuurr image size based on windows size
     // remove previous image annotations
     purgeOverlayEntry();
-    // display image
-    renderImg(fidx);
     // Display annotaiton overlays
 	//print("$orgImgWidth, $orgImgHeight, $_maxWidth, $_maxHeight");
 	//print("Imscale: $imgScale");
     loadAnns(context, fidx);
-    currImgIdx = fidx;
-	getImage(currImgIdx+10);
+    currImgIdx.value = fidx;
+	getImage(currImgIdx.value+10);
   }
 
   // Load annotation from coco file
@@ -188,7 +191,7 @@ import 'Coco.dart';
 		  // compensate for icon size size 15 = 19.8 pixels
           Alignment align =
               Alignment((x - (_w / 2)) * 2 / (_w-kpSize), (y - (_h / 2)) * 2 / (_h-kpSize));
-          showOverlayKeypoint(lcontext, (i~/3), align: align);
+          showOverlayKeypoint(lcontext, (i~/3), fidx, align: align);
         }
       }
     }
@@ -198,7 +201,7 @@ import 'Coco.dart';
 
 
   // confirmation dialoge while changing images
-  Future<void> showMyDialog(int index, BuildContext context, renderImg) async {
+  Future<void> showMyDialog(int index, BuildContext context) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
@@ -219,14 +222,14 @@ import 'Coco.dart';
               onPressed: () {
                 Navigator.of(context,rootNavigator: true).pop();
 				writeCocoFile();
-                loadImage(index, context, renderImg);
+                loadImage(index, context);
               },
             ),
             TextButton(
               child: Text('Discard'),
               onPressed: () {
                 dirtyBit = false;
-                loadImage(index, context, renderImg);
+                loadImage(index, context);
                 Navigator.of(context).pop();
               },
             ),
