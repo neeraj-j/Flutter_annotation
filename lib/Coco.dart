@@ -11,7 +11,7 @@ import "Common.dart";
 //String host = "http://192.168.1.3:9000";
 String user = "";
 // Edit mode =0; verify mode =1
-int mode=0;
+int mode=1;
 
 class CocoFile {
   // Todo: add info and licences

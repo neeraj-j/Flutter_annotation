@@ -163,7 +163,7 @@ class _OverlayKPState extends State<OverlayKP> {
   Widget build(BuildContext context) {
     Rect overlayPos = getPosition(imgKey);
     Color clr = (widget.kpIdx % 2 == 0) ? Colors.green[400] : Colors.red[400];
-	//print(widget.kpIdx);
+	//print("${widget.kpIdx}, ${widget.kAlign}");
     return CustomSingleChildLayout(
       delegate: _OverlayableContainerLayout(overlayPos),
       child: Container(

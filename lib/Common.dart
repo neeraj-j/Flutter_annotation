@@ -8,6 +8,7 @@ void removeOverlayKpEntry(int boxIdx, int kpIdx) {
   boxList[boxIdx]["kpOvrls"][kpIdx].remove();
   boxList[boxIdx]["kpOvrls"][kpIdx] = null;
   boxList[boxIdx]["kpKeys"][kpIdx] = null;
+  boxList[boxIdx]["kpPos"][kpIdx] = null;
 }
 
 // Remove overlay segment entry
@@ -34,6 +35,7 @@ void removeOverlayBoxEntry(int boxIdx) {
     boxList[boxIdx]["kpOvrls"][i].remove();
     boxList[boxIdx]["kpOvrls"][i] = null;
     boxList[boxIdx]["kpKeys"][i] = null;
+    boxList[boxIdx]["kpPos"][i] = null;
   }
   // Dont remove box entry
  //  boxList.removeAt(boxIdx);
@@ -57,6 +59,7 @@ void purgeOverlayEntry() {
       boxList[k]["kpOvrls"][i].remove();
       boxList[k]["kpOvrls"][i] = null;
       boxList[k]["kpKeys"][i] = null;
+      boxList[k]["kpPos"][i] = null;
     }
   }
 
@@ -137,31 +140,30 @@ class DrawSkeleton extends CustomPainter {
       ..color = Colors.yellow
       ..strokeWidth = 2
       ..strokeCap = StrokeCap.round;
-    if (boxIdx == -1) {
-      print("Error: -ve");
-      return;
-    }
+
     boxList[boxIdx]["kpPos"][kpIdx] = getKpCoords(boxIdx, kpIdx);
+	// First time y axis is off by 2 pixels; Why??
+    //print("$kpIdx, ${boxList[boxIdx]["kpPos"][kpIdx]}");
     for (var i = 0; i < skeleton.length; i++) {
       List<int> keypair = skeleton[i];
 	  if (!keypair.contains(kpIdx)){
 		continue;
 	  }
-      // skeleton is from 1-17 so subtract 1
-      //Offset kp1 = getKpCoords(boxIdx, keypair[0] - 1);
-      //Offset kp2 = getKpCoords(boxIdx, keypair[1] - 1);
-      Offset kp1 = boxList[boxIdx]["kpPos"][keypair[0]-1];
-      Offset kp2 = boxList[boxIdx]["kpPos"][keypair[1]-1];
+      //Offset kp1 = getKpCoords(boxIdx, keypair[0]);
+      //Offset kp2 = getKpCoords(boxIdx, keypair[1]);
+      Offset kp1 = boxList[boxIdx]["kpPos"][keypair[0]];
+      Offset kp2 = boxList[boxIdx]["kpPos"][keypair[1]];
       if (kp1 == null || kp2 == null) {
         continue;
       }
+      //print("${kpIdx}, ${kp1}, $kp2");
 	  //if (i==13){print(kp1*imgScale);}
       canvas.drawLine(kp1, kp2, paint);
     }
   }
 
   @override
-  bool shouldRepaint(CustomPainter oldDelegate) {
+  bool shouldRepaint(DrawSkeleton oldDelegate) {
     return false;
   }
 }
@@ -233,7 +235,7 @@ class DrawPolygon extends CustomPainter {
 
   @override
   bool shouldRepaint(CustomPainter oldDelegate) {
-    return true;
+    return false;
   }
 }
 

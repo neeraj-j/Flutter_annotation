@@ -41,25 +41,25 @@ OverlayState gOverlayState;
 
 // Skeleton
 List<List<int>> skeleton = [
-  [16, 14],
-  [14, 12],
-  [17, 15],
-  [15, 13],
-  [12, 13],
-  [6, 12],
-  [7, 13],
-  [6, 7],
-  [6, 8],
-  [7, 9],
-  [8, 10],
-  [9, 11],
-  [2, 3],
-  [1, 2],
+  [15, 13],   //left_ankle, left_knee
+  [13, 11],   //Left_knee, left_hip
+  [16, 14],    // rt_ankle, rt knee
+  [14, 12],   // rtknee, rt_hip 
+  [11, 12],   // lt_hip, rt_hip
+  [5, 11],    // lt_shoulderr, lt_hip
+  [6, 12],   // rt_soulder, rt_hip
+  [5, 6],    // lt_sholder, rt_hip
+  [5, 7],   // lt_shoulder, lt_elbow
+  [6, 8],   // rt_shulder, rt_elbow
+  [7, 9],   // lt_elbow, lt_wrist
+  [8, 10],   // rt_elbow, rt_wrist
+  [1, 2],   // 
+  [0, 1],
+  [0, 2],
   [1, 3],
   [2, 4],
   [3, 5],
-  [4, 6],
-  [5, 7]
+  [4, 6]
 ];
 
 void toast(mesg){

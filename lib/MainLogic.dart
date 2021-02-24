@@ -89,7 +89,7 @@ import 'Coco.dart';
           iconKey: icKey,
           kAlign: align);
     });
-
+	//print("$kpIdx, $align");
 	double _w=files[fidx]['width']/imgScale ;
 	double _h=files[fidx]['height']/imgScale ;
     // Overlay items
