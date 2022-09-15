@@ -1,12 +1,19 @@
 # flutter_web
-Current status:
-1. Segmentation addition, insertion
+ This is Image annotation tool. Written using Flutter as frontend and Python, Postgress, SQLAlchemy, RESTapis at the backend.
 
-TODO:
-1. save segmentation
-2. change bbox similar to segmentation (ontap) in bbox mode
-3. Test with coco data set
-4. Get worker config during login process
-5. worker config interface
-6. 
+ Supported features:
+ 1. Image segmentation,
+ 2. Bounding boxes
+ 3. Keypoints
 
+The server file is lib/flask_sql.py
+ 
+Please check demo videos:
+
+1. Image Segmentation
+https://youtu.be/tS_RBFmfNp0
+
+
+
+2. Keypoints and Bounding Boxes
+https://youtu.be/JJBjmXQzLLk

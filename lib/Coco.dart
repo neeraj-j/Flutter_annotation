@@ -6,10 +6,13 @@ import 'package:http/http.dart' as http;
 import "Globals.dart";
 import 'dart:typed_data';
 import "Common.dart";
+import 'package:flutter_web/CustomAppBar.dart';
 
 //String host = "http://122.172.144.91:9000";
-//String host = "http://192.168.1.3:9000";
-String user = "";
+String server = "192.168.1.3";
+//String server = "m.reya.pro";
+String port = ":9000";
+String user ="";
 // Edit mode =0; verify mode =1
 int mode=1;
 
@@ -53,7 +56,7 @@ Future<void> writeCocoFile() async {
   //  return;
   //}
   dirtyBit = false;
-  String host = "http://"+user+":9000";
+  String host = "http://"+server+ port;
   // update flies annotation record
   List annots = updateCoco(currImgIdx.value);
   if (annots.isEmpty) {return;}
@@ -165,7 +168,7 @@ List updateCoco(fidx) {
 // Delete image from server and coco list
 Future<void> deleteImage(String imName) async {
   // delte from coco list
-  String host = "http://"+user+":9000";
+  String host = "http://"+server+port;
   String url = host+'/delete/' + imName;
   final response = await http.delete(url);
   //final response =  await http.get('https://jsonplaceholder.typicode.com/albums/1');
@@ -176,9 +179,54 @@ Future<void> deleteImage(String imName) async {
   }
 }
 
+// Login  
+Future<String> loginUser(Map info, context) async {
+  // delte from coco list
+  String host = "http://"+server+port;
+  String url = host+'/auth';
+  final response = await http.post(url, 
+    headers: <String, String>{
+      // "Accept": "application/json",
+      // 'Access-Control-Allow-Origin': '*',
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+    //body: jsonEncode(<String,String>{"a":"b"}),
+    body: jsonEncode(info),
+  );
+  //final response =  await http.get('https://jsonplaceholder.typicode.com/albums/1');
+  if (response.statusCode == 200) {
+    Map retval = jsonDecode(response.body);
+	if (retval.isEmpty){
+		return "Login Failed!";	
+	}
+        // Dont know why I am saving return values
+        /*
+	mode = retval["mode"];
+	server = retval["server"];
+	port = ":${retval["port"]}";
+        */
+	workerId = retval["workerId"];
+	user = retval["user"];
+	user = retval["user"];
+        print(workerId);
+        print(user);
+	Navigator.pushReplacement(
+		context,
+		MaterialPageRoute(builder: (context) {
+		return CustomAppBar();
+		})
+	);
+	return "Success!";	
+  } 
+  return "Server Down!";	
+}
+
+
 // get the list of file names 
 Future <List> getFileList() async{
   if (files.isNotEmpty) {return files;}
+  print(workerId);
+  print(user);
   if (workerId =="" || user==""){return [];}
   String command;
   if (mode ==0){
@@ -189,7 +237,8 @@ Future <List> getFileList() async{
 	print("mode : $mode");
   }
   toast("Loading Data ...");
-  String host = "http://"+user+":9000";
+  String host = "http://"+server+port;
+  print(host+'/$command/$workerId');
   final response =  await http.get(host+'/$command/$workerId');
   if (response.statusCode == 200) {
     //print( jsonDecode(response.body));
@@ -204,7 +253,7 @@ Future <List> getFileList() async{
 Future<Uint8List> getImage(int idx) async {
   if (idx<0){return null;}
   if (files[idx].containsKey("bytes")){return files[idx]["bytes"];}
-  String host = "http://"+user+":9000";
+  String host = "http://"+server+port;
   String url =host+'/images/'+files[idx]['name'] ;
   Map<String, String> requestHeaders = {
        'Accept': 'application/json; charset=utf-8',
@@ -224,7 +273,7 @@ Future<Uint8List> getImage(int idx) async {
 
 // Get performance data
 Future <List> getData() async{
-  String host = "http://"+user+":9000";
+  String host = "http://"+server+port;
   String cmd;
   mode == 0?cmd = "eperform":cmd = "vperform";
   final response =  await http.get(host+'/$cmd/$workerId');

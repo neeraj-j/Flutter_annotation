@@ -43,7 +43,7 @@ class MenuColumn extends StatelessWidget {
   void _pickFiles() async {
 	files = await getFileList();
 	if (files.isEmpty){
-	  toast("Data not found");
+	  toast("Data not 1 found");
 	}
 	fileNotifier.value = files.length;
   }
@@ -67,9 +67,10 @@ class MenuColumn extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
+		  /*
           iconButtonBlue(
 			  // oly if files is empty
-              Icons.login_outlined, () => {files.isEmpty?loginForm(context):null}, "Login"),
+              Icons.login_outlined, () => {files.isEmpty?loginForm(context):null}, "Login"),*/
           iconButtonBlue(Icons.folder_open, () {
             _pickFiles();
           }, "Load Data"),
