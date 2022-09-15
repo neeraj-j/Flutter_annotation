@@ -13,7 +13,7 @@ Please check demo videos:
 1. Image Segmentation
 https://youtu.be/tS_RBFmfNp0
 
-[![Image Segmentation](https://img.youtu.be/tS_RBFmfNp0/0.jpg)](https://youtu.be/tS_RBFmfNp0 "Image Segmentation")
+[![Image Segmentation]](https://youtu.be/tS_RBFmfNp0 "Image Segmentation")
 
 2. Keypoints and Bounding Boxes
 https://youtu.be/JJBjmXQzLLk
