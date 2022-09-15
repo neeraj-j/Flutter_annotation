@@ -19,3 +19,5 @@ Please check demo videos:
 2. Keypoints and Bounding Boxes
 https://youtu.be/JJBjmXQzLLk
 [![KeyPoint Annotation](https://img.youtu.be/tS_RBFmfNp0/0.jpg)](https://youtu.be/tS_RBFmfNp0 "KeyPoint Annotation")
+
+[![IMAGE ALT TEXT HERE](http://img.youtube.com/vi/tS_RBFmfNp0/0.jpg)](http://www.youtube.com/watch?v=tS_RBFmfNp0)
